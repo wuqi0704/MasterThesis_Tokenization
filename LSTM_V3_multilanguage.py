@@ -233,5 +233,3 @@ for epoch in tqdm(range(EPOCH)):
 
 # print(len(data_train[11721][0]))
 # print(len(data_train[11721][1]))
-
-for sentence,
