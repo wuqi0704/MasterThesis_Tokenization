@@ -39,7 +39,7 @@ for language in LanguageList:
 # manually delete datasets that has a mismatch of the tag vs sentence length
 # note: effective way to deal with the data , the error is inside WhiteSpace_After.Or sth else
 print(len(data_train))
-i=0;k=0
+i=-1;k=0
 for sentence,tags in data_train:
     i += 1
     if len(sentence) != len(tags):
@@ -47,7 +47,7 @@ for sentence,tags in data_train:
         i -= 1; k += 1 # when an element is deleted, index need to change
 print(k)
 print(len(data_train))
-i=0;k=0
+i=-1;k=0
 for sentence,tags in data_test:
     i += 1
     if len(sentence) != len(tags):
@@ -233,3 +233,4 @@ for epoch in tqdm(range(EPOCH)):
 
 # print(len(data_train[11721][0]))
 # print(len(data_train[11721][1]))
+
