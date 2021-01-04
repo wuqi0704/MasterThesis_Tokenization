@@ -43,16 +43,16 @@ i=-1;k=0
 for sentence,tags in data_train:
     i += 1
     if len(sentence) != len(tags):
-        data_train.pop(i)
-        i -= 1; k += 1 # when an element is deleted, index need to change
+        data_train.pop(i-k)
+        k += 1 # when an element is deleted, index need to change
 print(k)
 print(len(data_train))
 i=-1;k=0
 for sentence,tags in data_test:
     i += 1
     if len(sentence) != len(tags):
-        data_test.pop(i)
-        i -= 1; k += 1 
+        data_test.pop(i-k)
+        k += 1 
 print(k)
 
 # data_train = data_train[0:10]
