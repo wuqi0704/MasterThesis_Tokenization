@@ -38,22 +38,18 @@ for language in LanguageList:
     
 # manually delete datasets that has a mismatch of the tag vs sentence length
 # note: effective way to deal with the data , the error is inside WhiteSpace_After.Or sth else
-print(len(data_train))
-i=-1;k=0
+data_train_correct,data_test_correct = [],[]
 for sentence,tags in data_train:
-    i += 1
-    if len(sentence) != len(tags):
-        data_train.pop(i-k)
-        k += 1 # when an element is deleted, index need to change
-print(k)
-print(len(data_train))
-i=-1;k=0
+    if len(sentence) == len(tags):
+        data_train_correct.append((sentence,tags))
+print(len(data_train)-len(data_train_correct))
+
 for sentence,tags in data_test:
-    i += 1
-    if len(sentence) != len(tags):
-        data_test.pop(i-k)
-        k += 1 
-print(k)
+    if len(sentence) == len(tags):
+        data_test_correct.append((sentence,tags))
+print(len(data_test)-len(data_test_correct))
+
+data_test,data_train = data_test_correct,data_train_correct
 
 # data_train = data_train[0:10]
 # data_test = data_test [0:10]
@@ -233,4 +229,55 @@ for epoch in tqdm(range(EPOCH)):
 
 # print(len(data_train[11721][0]))
 # print(len(data_train[11721][1]))
+
+# In[74]:
+
+### Load Prepared Datasets
+
+import pickle
+LanguageList = [
+    'HEBREW',
+    'ARABIC',
+    'PORTUGUESE',
+    'ITALIAN',
+    'FRENCH',
+    'SPANISH',
+    'GERMAN',
+    'ENGLISH',
+    'RUSSIAN',
+    'FINNISH',
+    'VIETNAMESE',
+    'KOREAN',
+    'CHINESE',
+    'JAPANESE'
+]
+data_train,data_test=[],[]
+for language in LanguageList:
+    with open('./data/%s_Train.pickle'%language, 'rb') as f1:
+        train = pickle.load(f1)
+    with open('./data/%s_Test.pickle'%language, 'rb') as f2:
+        test = pickle.load(f2) 
+    
+    data_train += train
+    data_test += test 
+    
+# manually delete datasets that has a mismatch of the tag vs sentence length
+# note: effective way to deal with the data , the error is inside WhiteSpace_After.Or sth else
+# print(len(data_train))
+
+# k=0
+# for sentence,tags in data_train:
+#     if len(sentence) != len(tags):
+#         data_train.remove((sentence,tags))
+#         k += 1 # when an element is deleted, index need to change
+# print(k)
+# print(len(data_train))
+
+# # for i,(sentence,tags) in enumerate(data_train):
+# #     if len(sentence) != len(tags):
+# #         del data_train[i]
+
+# for i,(sentence,tags) in enumerate(data_train):
+#     if len(sentence) != len(tags):
+#         print(i)
 
