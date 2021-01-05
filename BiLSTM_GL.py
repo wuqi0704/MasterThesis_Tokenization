@@ -6,11 +6,18 @@
 # Using contextual string embedding
 
 # In[74]:
-# train model for each language
+# train model for each cluster 
 
 ### Load Prepared Datasets
-
 import pickle
+group1 = ['HEBREW','ARABIC']
+group2 = ['PORTUGUESE','ITALIAN','FRENCH','SPANISH','GERMAN','ENGLISH','FINNISH']
+group3 = ['RUSSIAN', 'KOREAN']
+group4 = ['CHINESE','JAPANESE']
+group5 = ['VIETNAMESE']
+
+GroupList = [group1,group2,group3,group4,group5]
+
 LanguageList = [
     'HEBREW',
     'ARABIC',
@@ -28,18 +35,20 @@ LanguageList = [
     'JAPANESE'
 ]
 data_train,data_test={},{}
+
 for language in LanguageList:
     with open('./data/%s_Train.pickle'%language, 'rb') as f1:
         train = pickle.load(f1)
     with open('./data/%s_Test.pickle'%language, 'rb') as f2:
         test = pickle.load(f2) 
     
-    data_train[language] = train
-    data_test[language]  = test 
+        data_train[language] = train
+        data_test[language]  = test 
     
 # manually delete datasets that has a mismatch of the tag vs sentence length
 # note: effective way to deal with the data , the error is inside WhiteSpace_After.Or sth else
 data_train_correct,data_test_correct = {},{}
+
 for language in LanguageList:
     data_train_correct[language], data_test_correct[language]=[],[]
     for sentence,tags in data_train[language]:
@@ -55,6 +64,12 @@ for language in LanguageList:
     if lost !=0: print('test',language,lost)
 # update the datasets for training that has matching length of sentence and targets 
 data_test,data_train = data_test_correct,data_train_correct
+
+data
+for group,group_name in enumerate():
+    data_train[group],data_test[group]=[],[]
+    for language in group:
+        data_train[group] += data_train[language] 
 
 # Imports
 import torch
@@ -138,7 +153,7 @@ class LSTMTagger(nn.Module):
 
 # In[84]:
 
-filename = "BiLSTM_SL%s.pth.tar"%language
+filename = "BiLSTM_SL%s.pth.tar"%group
 def save_checkpoint(state, filename=filename):
     print("=> Saving checkpoint")
     torch.save(state, filename)
@@ -188,33 +203,34 @@ if load_model: load_checkpoint(torch.load(filename), model, optimizer)
 
 from tqdm import tqdm
 import time
-for language in LanguageList:
-    for epoch in tqdm(range(EPOCH)): 
-        start_time = time.time()
-        save_checkpoint(checkpoint)
-        running_loss = 0
-        for sentence, tags in tqdm(data_train[language],position=0,leave = True):
-            # Step 1. Remember that Pytorch accumulates gradients.
-            # We need to clear them out before each instance
-            model.zero_grad()
+for group in GroupList:
+    for language in group:
+        for epoch in tqdm(range(EPOCH)): 
+            start_time = time.time()
+            save_checkpoint(checkpoint)
+            running_loss = 0
+            for sentence, tags in tqdm(data_train[language],position=0,leave = True):
+                # Step 1. Remember that Pytorch accumulates gradients.
+                # We need to clear them out before each instance
+                model.zero_grad()
 
-            # Step 2. Get our inputs ready for the network, that is, turn them into
-            # Tensors of word indices.
-    #         sentence_in = prepare_sequence(sentence, letter_to_ix)
-            sentence_in = prepare_sequence(sentence, letter_to_ix).to(device=device)
-            targets = prepare_sequence(tags, tag_to_ix).to(device=device)
+                # Step 2. Get our inputs ready for the network, that is, turn them into
+                # Tensors of word indices.
+        #         sentence_in = prepare_sequence(sentence, letter_to_ix)
+                sentence_in = prepare_sequence(sentence, letter_to_ix).to(device=device)
+                targets = prepare_sequence(tags, tag_to_ix).to(device=device)
 
-            # Step 3. Run our forward pass.
-            tag_scores = model(sentence_in)
-            loss = loss_function(tag_scores,targets)
-            # Step 4. Compute the loss, gradients, and update the parameters by
-            #  calling optimizer.step()
+                # Step 3. Run our forward pass.
+                tag_scores = model(sentence_in)
+                loss = loss_function(tag_scores,targets)
+                # Step 4. Compute the loss, gradients, and update the parameters by
+                #  calling optimizer.step()
 
-            running_loss += loss.item()
-            loss.backward()
-            optimizer.step()
-        print("Loss: ",running_loss/len(data_train[language]))
-        print("--- %s seconds ---" % (time.time() - start_time))
+                running_loss += loss.item()
+                loss.backward()
+                optimizer.step()
+            print("Loss: ",running_loss/len(data_train[language]))
+            print("--- %s seconds ---" % (time.time() - start_time))
     
 
 

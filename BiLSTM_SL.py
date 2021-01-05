@@ -34,8 +34,8 @@ for language in LanguageList:
     with open('./data/%s_Test.pickle'%language, 'rb') as f2:
         test = pickle.load(f2) 
     
-    data_train[language] = train
-    data_test[language]  = test 
+    data_train[language] = train[0:10]
+    data_test[language]  = test [0:5]
     
 # manually delete datasets that has a mismatch of the tag vs sentence length
 # note: effective way to deal with the data , the error is inside WhiteSpace_After.Or sth else
@@ -115,7 +115,6 @@ class LSTMTagger(nn.Module):
 
     def forward(self,sentence):
         embeds = self.character_embeddings(sentence)
-
 #         s_m,e_m = '\n','\n' # start_marker and end_marker
 #         embeds_f = self.lm_f.get_representation([sentence],s_m,e_m)[1:-1,:,:] # 1:-1 because the start and end marker are not needed
 #         embeds_b = self.lm_b.get_representation([sentence],s_m,e_m)[1:-1,:,:]
@@ -138,7 +137,6 @@ class LSTMTagger(nn.Module):
 
 # In[84]:
 
-filename = "BiLSTM_SL%s.pth.tar"%language
 def save_checkpoint(state, filename=filename):
     print("=> Saving checkpoint")
     torch.save(state, filename)
@@ -150,8 +148,6 @@ def load_checkpoint(checkpoint, model, optimizer):
 
 
 # In[86]:
-
-
 # Hyperparameters
 
 # sequence_length = len(sentence)
@@ -159,39 +155,36 @@ def load_checkpoint(checkpoint, model, optimizer):
 num_layers = 1 # if more 
 EMBEDDING_DIM = 2048 # input_size = 2048 (embedding_size for each character)
 HIDDEN_DIM = 256 # hidden_size = 256
-load_model = False
 EPOCH = 10
 learning_rate = 0.1
 batch_size = 1
 num_layers = 1
 
-# Initialize network
-model = LSTMTagger(embedding_dim=EMBEDDING_DIM, num_layers = num_layers,hidden_dim=HIDDEN_DIM,tagset_size=5,character_size=len(letter_to_ix))
-
-if(torch.cuda.is_available()):
-	print(torch.cuda.current_device())
-model = model.to(device)
-model.train()
-
-optimizer = optim.SGD(model.parameters(), learning_rate)
-loss_function = nn.NLLLoss()
 # not using this since batch size is 1
 # train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 # test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
 
 # In[55]:
 
-checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
 # Try load checkpoint
-
-if load_model: load_checkpoint(torch.load(filename), model, optimizer)
+# load_model = False
+# if load_model: load_checkpoint(torch.load(filename), model, optimizer)
 
 from tqdm import tqdm
 import time
 for language in LanguageList:
+    # Initialize network
+    model = LSTMTagger(embedding_dim=EMBEDDING_DIM, num_layers = num_layers,hidden_dim=HIDDEN_DIM,tagset_size=5,character_size=len(letter_to_ix))
+    if(torch.cuda.is_available()): print(torch.cuda.current_device())
+    model = model.to(device); model.train()
+    optimizer = optim.SGD(model.parameters(), learning_rate)
+    loss_function = nn.NLLLoss()
+    checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
+    
     for epoch in tqdm(range(EPOCH)): 
         start_time = time.time()
-        save_checkpoint(checkpoint)
+        checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
+        save_checkpoint(checkpoint,filename="BiLSTM_SL_%s.pth.tar"%language)
         running_loss = 0
         for sentence, tags in tqdm(data_train[language],position=0,leave = True):
             # Step 1. Remember that Pytorch accumulates gradients.
@@ -229,3 +222,6 @@ for language in LanguageList:
 # len(targets)
 # print(len(sentence))
 # len(tags)
+language
+filename
+checkpoint
