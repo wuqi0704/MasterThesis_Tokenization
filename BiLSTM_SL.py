@@ -6,6 +6,7 @@
 # Using contextual string embedding
 
 # In[74]:
+# train model for each language
 
 ### Load Prepared Datasets
 
@@ -26,33 +27,34 @@ LanguageList = [
     'CHINESE',
     'JAPANESE'
 ]
-data_train,data_test=[],[]
+data_train,data_test={},{}
 for language in LanguageList:
     with open('./data/%s_Train.pickle'%language, 'rb') as f1:
         train = pickle.load(f1)
     with open('./data/%s_Test.pickle'%language, 'rb') as f2:
         test = pickle.load(f2) 
     
-    data_train += train
-    data_test += test 
+    data_train[language] = train
+    data_test[language]  = test 
     
 # manually delete datasets that has a mismatch of the tag vs sentence length
 # note: effective way to deal with the data , the error is inside WhiteSpace_After.Or sth else
-data_train_correct,data_test_correct = [],[]
-for sentence,tags in data_train:
-    if len(sentence) == len(tags):
-        data_train_correct.append((sentence,tags))
-print(len(data_train)-len(data_train_correct))
+data_train_correct,data_test_correct = {},{}
+for language in LanguageList:
+    data_train_correct[language], data_test_correct[language]=[],[]
+    for sentence,tags in data_train[language]:
+        if len(sentence) == len(tags):
+            data_train_correct[language].append((sentence,tags))
+    lost = len(data_train[language])-len(data_train_correct[language])
+    if lost !=0: print('train',language,lost)
 
-for sentence,tags in data_test:
-    if len(sentence) == len(tags):
-        data_test_correct.append((sentence,tags))
-print(len(data_test)-len(data_test_correct))
-
+    for sentence,tags in data_test[language]:
+        if len(sentence) == len(tags):
+            data_test_correct[language].append((sentence,tags))
+    lost = len(data_test[language])-len(data_test_correct[language])
+    if lost !=0: print('test',language,lost)
+# update the datasets for training that has matching length of sentence and targets 
 data_test,data_train = data_test_correct,data_train_correct
-
-# data_train = data_train[0:10]
-# data_test = data_test [0:10]
 
 # Imports
 import torch
@@ -74,12 +76,13 @@ torch.manual_seed(1)
 # In[82]:
 import numpy as np
 letter_to_ix = {}
-for sent, tags in data_train+data_test:
-    for letter in sent:
-        if letter not in letter_to_ix:
-            letter_to_ix[letter] = len(letter_to_ix)
+for language in LanguageList:
+    for sent, tags in data_train[language]+data_test[language]:
+        for letter in sent:
+            if letter not in letter_to_ix:
+                letter_to_ix[letter] = len(letter_to_ix)
 print('Nr. of distinguish character: ',len(letter_to_ix.keys()))
-# print(letter_to_ix.keys())
+
 
 tag_to_ix = {'B': 0, 'I': 1,'E':2,'S':3,'X':4}
 ix_to_tag = {y:x for x,y in tag_to_ix.items()}
@@ -135,7 +138,7 @@ class LSTMTagger(nn.Module):
 
 # In[84]:
 
-filename = "LSTM_V3_multilanguage.pth.tar"
+filename = "BiLSTM_SL%s.pth.tar"%language
 def save_checkpoint(state, filename=filename):
     print("=> Saving checkpoint")
     torch.save(state, filename)
@@ -185,33 +188,33 @@ if load_model: load_checkpoint(torch.load(filename), model, optimizer)
 
 from tqdm import tqdm
 import time
+for language in LanguageList:
+    for epoch in tqdm(range(EPOCH)): 
+        start_time = time.time()
+        save_checkpoint(checkpoint)
+        running_loss = 0
+        for sentence, tags in tqdm(data_train[language],position=0,leave = True):
+            # Step 1. Remember that Pytorch accumulates gradients.
+            # We need to clear them out before each instance
+            model.zero_grad()
 
-for epoch in tqdm(range(EPOCH)): 
-    start_time = time.time()
-    save_checkpoint(checkpoint)
-    running_loss = 0
-    for sentence, tags in tqdm(data_train,position=0,leave = True):
-        # Step 1. Remember that Pytorch accumulates gradients.
-        # We need to clear them out before each instance
-        model.zero_grad()
+            # Step 2. Get our inputs ready for the network, that is, turn them into
+            # Tensors of word indices.
+    #         sentence_in = prepare_sequence(sentence, letter_to_ix)
+            sentence_in = prepare_sequence(sentence, letter_to_ix).to(device=device)
+            targets = prepare_sequence(tags, tag_to_ix).to(device=device)
 
-        # Step 2. Get our inputs ready for the network, that is, turn them into
-        # Tensors of word indices.
-#         sentence_in = prepare_sequence(sentence, letter_to_ix)
-        sentence_in = prepare_sequence(sentence, letter_to_ix).to(device=device)
-        targets = prepare_sequence(tags, tag_to_ix).to(device=device)
+            # Step 3. Run our forward pass.
+            tag_scores = model(sentence_in)
+            loss = loss_function(tag_scores,targets)
+            # Step 4. Compute the loss, gradients, and update the parameters by
+            #  calling optimizer.step()
 
-        # Step 3. Run our forward pass.
-        tag_scores = model(sentence_in)
-        loss = loss_function(tag_scores,targets)
-        # Step 4. Compute the loss, gradients, and update the parameters by
-        #  calling optimizer.step()
-
-        running_loss += loss.item()
-        loss.backward()
-        optimizer.step()
-    print("Loss: ",running_loss/len(data_train))
-    print("--- %s seconds ---" % (time.time() - start_time))
+            running_loss += loss.item()
+            loss.backward()
+            optimizer.step()
+        print("Loss: ",running_loss/len(data_train[language]))
+        print("--- %s seconds ---" % (time.time() - start_time))
     
 
 
@@ -226,58 +229,3 @@ for epoch in tqdm(range(EPOCH)):
 # len(targets)
 # print(len(sentence))
 # len(tags)
-
-# print(len(data_train[11721][0]))
-# print(len(data_train[11721][1]))
-
-# In[74]:
-
-### Load Prepared Datasets
-
-import pickle
-LanguageList = [
-    'HEBREW',
-    'ARABIC',
-    'PORTUGUESE',
-    'ITALIAN',
-    'FRENCH',
-    'SPANISH',
-    'GERMAN',
-    'ENGLISH',
-    'RUSSIAN',
-    'FINNISH',
-    'VIETNAMESE',
-    'KOREAN',
-    'CHINESE',
-    'JAPANESE'
-]
-data_train,data_test=[],[]
-for language in LanguageList:
-    with open('./data/%s_Train.pickle'%language, 'rb') as f1:
-        train = pickle.load(f1)
-    with open('./data/%s_Test.pickle'%language, 'rb') as f2:
-        test = pickle.load(f2) 
-    
-    data_train += train
-    data_test += test 
-    
-# manually delete datasets that has a mismatch of the tag vs sentence length
-# note: effective way to deal with the data , the error is inside WhiteSpace_After.Or sth else
-# print(len(data_train))
-
-# k=0
-# for sentence,tags in data_train:
-#     if len(sentence) != len(tags):
-#         data_train.remove((sentence,tags))
-#         k += 1 # when an element is deleted, index need to change
-# print(k)
-# print(len(data_train))
-
-# # for i,(sentence,tags) in enumerate(data_train):
-# #     if len(sentence) != len(tags):
-# #         del data_train[i]
-
-# for i,(sentence,tags) in enumerate(data_train):
-#     if len(sentence) != len(tags):
-#         print(i)
-
