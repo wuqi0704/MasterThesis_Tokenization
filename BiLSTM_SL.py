@@ -31,9 +31,9 @@ for language in LanguageList:
         train = pickle.load(f1)
     with open('./data/%s_Test.pickle'%language, 'rb') as f2:
         test = pickle.load(f2) 
-    # small sample for debugging
-    data_train[language] = train[0:10]
-    data_test[language]  = test [0:5]
+    # # small sample for debugging
+    # data_train[language] = train[0:10]
+    # data_test[language]  = test [0:5]
     
 # manually delete datasets that has a mismatch of the tag vs sentence length
 # note: effective way to deal with the data , the error is inside WhiteSpace_After.Or sth else

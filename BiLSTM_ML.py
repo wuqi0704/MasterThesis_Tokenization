@@ -52,8 +52,8 @@ print(len(data_test)-len(data_test_correct))
 data_test,data_train = data_test_correct,data_train_correct
 
 # small sample for debugging
-data_train = data_train[0:10]
-data_test = data_test [0:10]
+# data_train = data_train[0:10]
+# data_test = data_test [0:10]
 
 # Imports
 import torch
