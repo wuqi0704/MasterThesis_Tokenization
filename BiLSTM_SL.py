@@ -2,8 +2,6 @@
 # coding: utf-8
 
 # # LSTM for Word Boundaries
-# 
-# Using contextual string embedding
 
 # In[74]:
 # train model for each language
@@ -33,7 +31,7 @@ for language in LanguageList:
         train = pickle.load(f1)
     with open('./data/%s_Test.pickle'%language, 'rb') as f2:
         test = pickle.load(f2) 
-    
+    # small sample for debugging
     data_train[language] = train[0:10]
     data_test[language]  = test [0:5]
     
@@ -105,28 +103,21 @@ class LSTMTagger(nn.Module):
         super(LSTMTagger, self).__init__()
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
-#         self.flair_embeddings = language_model.get_representation()
+
         self.character_embeddings = nn.Embedding(character_size, embedding_dim) 
         self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers=num_layers, batch_first=False, bidirectional=True,dropout=0.5)
-#         self.lm_f: LanguageModel = FlairEmbeddings('multi-forward').lm
-#         self.lm_b: LanguageModel = FlairEmbeddings('multi-backward').lm  
+ 
         # The linear layer that maps from hidden state space to tag space
         self.hidden2tag = nn.Linear(hidden_dim * 2, tagset_size)
 
     def forward(self,sentence):
         embeds = self.character_embeddings(sentence)
-#         s_m,e_m = '\n','\n' # start_marker and end_marker
-#         embeds_f = self.lm_f.get_representation([sentence],s_m,e_m)[1:-1,:,:] # 1:-1 because the start and end marker are not needed
-#         embeds_b = self.lm_b.get_representation([sentence],s_m,e_m)[1:-1,:,:]
-        # how to construct bi embedding using both forward and backward embedding? 
-#         embeds = embeds_f 
         
         # figure out the output and the num_layers's role in the framework
         x = embeds.view(len(sentence), 1, -1) # add one more dimension, batch_size = 1 
-        h0 = torch.zeros(self.num_layers * 2, batch_size, self.hidden_dim).to(device)
-        c0 = torch.zeros(self.num_layers * 2, batch_size, self.hidden_dim).to(device) # batch size is 1 
-        out, _ = self.lstm(x, (h0, c0))
-
+        # h0 = torch.zeros(self.num_layers * 2, batch_size, self.hidden_dim).to(device)
+        # c0 = torch.zeros(self.num_layers * 2, batch_size, self.hidden_dim).to(device) # batch size is 1 
+        # out, _ = self.lstm(x, (h0, c0))
         lstm_out, _ = self.lstm(x)
         tag_space = self.hidden2tag(lstm_out.view(len(sentence), -1))
 
@@ -179,12 +170,11 @@ for language in LanguageList:
     model = model.to(device); model.train()
     optimizer = optim.SGD(model.parameters(), learning_rate)
     loss_function = nn.NLLLoss()
-    checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
-    
+
     for epoch in tqdm(range(EPOCH)): 
         start_time = time.time()
         checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
-        save_checkpoint(checkpoint,filename="BiLSTM_SL_%s.pth.tar"%language)
+        save_checkpoint(checkpoint,filename="./trained_models/BiLSTM_SL_%s.pth.tar"%language)
         running_loss = 0
         for sentence, tags in tqdm(data_train[language],position=0,leave = True):
             # Step 1. Remember that Pytorch accumulates gradients.
@@ -208,20 +198,3 @@ for language in LanguageList:
             optimizer.step()
         print("Loss: ",running_loss/len(data_train[language]))
         print("--- %s seconds ---" % (time.time() - start_time))
-    
-
-
-
-
-
-# %%
-# print(sentence)
-# sentence_in = prepare_sequence(sentence, letter_to_ix)
-# print(sentence_in.shape)
-# model(sentence_in)
-# len(targets)
-# print(len(sentence))
-# len(tags)
-language
-filename
-checkpoint
