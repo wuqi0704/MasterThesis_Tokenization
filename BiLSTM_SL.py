@@ -31,6 +31,10 @@ for language in LanguageList:
         train = pickle.load(f1)
     with open('./data/%s_Test.pickle'%language, 'rb') as f2:
         test = pickle.load(f2) 
+
+    data_train[language] = train
+    data_test[language]  = test 
+
     # # small sample for debugging
     # data_train[language] = train[0:10]
     # data_test[language]  = test [0:5]
