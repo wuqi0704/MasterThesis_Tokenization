@@ -33,7 +33,7 @@ for language in LanguageList:
         test = pickle.load(f2) 
 
     data_train[language] = train
-    data_test[language]  = test 
+    data_test[language]  = test
 
     # # small sample for debugging
     # data_train[language] = train[0:10]
@@ -132,7 +132,7 @@ class LSTMTagger(nn.Module):
 
 # In[84]:
 
-def save_checkpoint(state, filename=filename):
+def save_checkpoint(state, filename='temp.pth.tar'):
     print("=> Saving checkpoint")
     torch.save(state, filename)
     
