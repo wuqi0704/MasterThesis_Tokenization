@@ -151,7 +151,6 @@ load_model = False
 EPOCH = 10
 learning_rate = 0.1
 batch_size = 1
-num_layers = 1
 
 # Initialize network
 model = LSTMTagger(embedding_dim=EMBEDDING_DIM, num_layers = num_layers,hidden_dim=HIDDEN_DIM,tagset_size=5,character_size=len(letter_to_ix))
