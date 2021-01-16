@@ -11,6 +11,8 @@ from torch.utils.data import DataLoader
 from flair.embeddings import FlairEmbeddings
 from flair.models import LanguageModel
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 class LSTMTagger(nn.Module):
     def __init__(self, character_size, embedding_dim, hidden_dim,num_layers,tagset_size) :
         super(LSTMTagger, self).__init__()
