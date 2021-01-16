@@ -23,6 +23,7 @@ def token_boundary_tag(corpus_element):
         if len(token.text)==1: token.add_tag(tag_value='S',tag_type='BIESX')
         else: token.add_tag(tag_value='B'+'I'*(len(token.text)-2)+'E',tag_type='BIESX')
 
+# store the length of datasets
 length = {}
 
 #%%
@@ -30,7 +31,7 @@ length = {}
 from flair import datasets
 import time; from tqdm import tqdm
 
-for language in tqdm(LanguageList[-4:]):
+for language in tqdm(LanguageList[]):
     start_time = time.time()
 #     corpus_split   = eval('datasets.'+'UD_'+language + "(split_multiwords=True)")
     corpus_unsplit = eval('datasets.'+'UD_'+language + "(split_multiwords=False)")
@@ -48,8 +49,8 @@ for language in tqdm(LanguageList[-4:]):
     
     # prepare train and test sentence list
     train_sentence = [corpus_element.to_plain_string() for corpus_element in corpus.get_all_sentences().datasets[0]]
-    test_sentence = [corpus_element.to_plain_string() for corpus_element in corpus.get_all_sentences().datasets[1]]
-    dev_sentence  = [corpus_element.to_plain_string() for corpus_element in corpus.get_all_sentences().datasets[2]]
+    test_sentence  = [corpus_element.to_plain_string() for corpus_element in corpus.get_all_sentences().datasets[1]]
+    dev_sentence   = [corpus_element.to_plain_string() for corpus_element in corpus.get_all_sentences().datasets[2]]
     
     # prepare tag list 
     # Remark: add tag X for white space here 
@@ -100,7 +101,6 @@ for language in tqdm(LanguageList[-4:]):
 
 #%% 
 # show dataset size:
-
 import pandas as pd
 l = pd.DataFrame.from_dict(length,orient="index")
 l.columns = ['total','train','test','dev']
@@ -108,7 +108,7 @@ l.to_csv('./data/datasets_size.csv')
 print(l)
 
 #%%
-# check if tag set and sentence set are of the same length
+# double check if tag set and sentence set are of the same length
 import pickle
 for language in LanguageList:
     with open('./data/%s_Train.pickle'%language, 'rb') as f1:
