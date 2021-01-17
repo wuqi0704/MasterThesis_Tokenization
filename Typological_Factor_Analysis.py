@@ -26,7 +26,7 @@ from tqdm import tqdm ; import time
 import numpy as np; import pandas as pd
 
 TF = {}
-for language in tqdm(LanguageList_Shao):
+for language in tqdm(LanguageList):
     TF[language] = []
     corpus_split   = eval('datasets.'+'UD_'+language + "(split_multiwords=True)")
     corpus_unsplit = eval('datasets.'+'UD_'+language + "(split_multiwords=False)")
