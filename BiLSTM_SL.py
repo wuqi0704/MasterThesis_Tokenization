@@ -76,7 +76,7 @@ def load_checkpoint(checkpoint, model, optimizer):
 
 
 # %% Hyperparameters
-import functions 
+%run functions.py 
 from functions import LSTMTagger
 
 num_classes = 5

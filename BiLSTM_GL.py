@@ -85,7 +85,7 @@ def load_checkpoint(checkpoint, model, optimizer):
     optimizer.load_state_dict(checkpoint['optimizer'])
 
 #%% Hyperparameters
-import functions 
+%run functions.py 
 from functions import LSTMTagger
 
 num_classes = 5
