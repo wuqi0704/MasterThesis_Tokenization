@@ -12,6 +12,6 @@ BiLSTM_ML: multilingual model
 
 output in *trained_models*
 
-BiLSTM_Evaluation.py: evaluation of the results on test datasets
+BiLSTM_Evaluation.py: evaluation of the results on test datasets, output in folder *results*
 
 functions.py: define class BiLSTM, and other helper functions
