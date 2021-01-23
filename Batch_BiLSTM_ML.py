@@ -45,7 +45,7 @@ for language in LanguageList:
 # %% character dictionary set and define other helper functions
 import numpy as np
 letter_to_ix = {}
-letter_to_ix[''] = 0
+letter_to_ix[''] = 0 # need this for padding
 for sent, tags in data_train+data_test+data_dev:
     for letter in sent:
         if letter not in letter_to_ix:
@@ -93,7 +93,7 @@ torch.manual_seed(1)
 tagset_size = len(tag_to_ix)
 embedding_dim = 256 
 hidden_dim = 256 
-EPOCH = 10
+MAX_EPOCH = 10
 learning_rate = 0.1
 batch_size = 10
 num_layers = 1
@@ -135,7 +135,7 @@ filename = "./trained_models/Batch_BiLSTM_ML.tar"
 from tqdm import tqdm; import time
 from torch.nn.utils.rnn import pack_padded_sequence
 
-for epoch in tqdm(range(EPOCH)): 
+for epoch in tqdm(range(MAX_EPOCH)): 
     
     start_time = time.time()
     running_loss = 0
@@ -187,10 +187,13 @@ for epoch in tqdm(range(EPOCH)):
         checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
         save_checkpoint(checkpoint,filename)
     else : 
-        if (dev_loss/len(dev_loader))<lowest_dev_loss : 
+        if (dev_loss/len(dev_loader)) < lowest_dev_loss : 
             lowest_dev_loss = dev_loss/len(dev_loader)
             checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
             save_checkpoint(checkpoint,filename)
+        else:
+            print('stop early, epoch = ',epoch)
+            break
 
     print("training Loss: ",running_loss/len(train_loader))
     print("develop Loss: ",dev_loss/len(dev_loader))

@@ -22,15 +22,16 @@ LanguageList = [
     'CHINESE',
     'JAPANESE'
 ]
-data_train,data_test=[],[]
+data_train,data_test,data_dev=[],[],[]
 for language in LanguageList:
     with open('./data/%s_Train.pickle'%language, 'rb') as f1:
         train = pickle.load(f1)
     with open('./data/%s_Test.pickle'%language, 'rb') as f2:
         test = pickle.load(f2) 
+    with open('./data/%s_Dev.pickle'%language, 'rb') as f3:
+        dev = pickle.load(f3)
     
-    data_train += train
-    data_test += test 
+    data_train += train; data_test += test; data_dev += dev
 
 # small sample for debugging
 # data_train = data_train[0:10]
@@ -40,11 +41,11 @@ for language in LanguageList:
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(1)
 
-
 # %% character dictionary set and define other helper functions
 import numpy as np
 letter_to_ix = {}
-for sent, tags in data_train+data_test:
+letter_to_ix[''] = 0 # this is only needed for padding, but just for consistancy 
+for sent, tags in data_train+data_test+data_dev:
     for letter in sent:
         if letter not in letter_to_ix:
             letter_to_ix[letter] = len(letter_to_ix)
@@ -87,11 +88,10 @@ torch.manual_seed(1)
 
 from functions import LSTMTagger
 
-num_classes = 5
-# embedding_dim = 2048 # note: maybe try smaller size?
-embedding_dim = 256
-hidden_dim = 256 # hidden_size = 256
-EPOCH = 10
+tagset_size = len(tag_to_ix)
+embedding_dim = 256 # embedding_dim = 2048 
+hidden_dim = 256 
+MAX_EPOCH = 10
 learning_rate = 0.1
 batch_size = 1
 num_layers = 1
@@ -115,7 +115,7 @@ filename = "./trained_models/BiLSTM_ML256.tar"
 
 from tqdm import tqdm; import time
 
-for epoch in tqdm(range(EPOCH)): 
+for epoch in tqdm(range(MAX_EPOCH)): 
     start_time = time.time()
     running_loss = 0
     for sentence, tags in tqdm(data_train,position=0,leave = True):
@@ -135,6 +135,30 @@ for epoch in tqdm(range(EPOCH)):
         running_loss += loss.item()
         loss.backward()
         optimizer.step()
+
+    # calculate dev loss
+    dev_loss = 0
+    for sentence, tags in tqdm(data_dev,position=0,leave = True):
+        sentence_in = prepare_sequence(sentence, letter_to_ix).to(device=device)
+        targets = prepare_sequence(tags, tag_to_ix).to(device=device)
+        tag_scores = model(sentence_in)
+        loss = loss_function(tag_scores,targets)
+
+        dev_loss += loss.item()
+
+    # save the best model using to dev loss 
+    if epoch == 0: 
+        lowest_dev_loss = dev_loss/len(data_dev)
+        checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
+        save_checkpoint(checkpoint,filename)
+    else : 
+        if (dev_loss/len(data_dev)) < lowest_dev_loss : 
+            lowest_dev_loss = dev_loss/len(data_dev)
+            checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
+            save_checkpoint(checkpoint,filename)
+        else:
+            print('stop early, epoch = ',epoch)
+            break
 
     checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
     save_checkpoint(checkpoint)
