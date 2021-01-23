@@ -44,7 +44,7 @@ for language in LanguageList:
 # %% character dictionary set and define other helper functions
 import numpy as np
 letter_to_ix = {}
-for sent, tags in data_train+data_test:
+for sent, tags in data_train+data_test+data_dev:
     for letter in sent:
         if letter not in letter_to_ix:
             letter_to_ix[letter] = len(letter_to_ix)+1 # leave index 0 out 
