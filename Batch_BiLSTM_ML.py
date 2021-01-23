@@ -5,12 +5,87 @@
 # train multilingual model using all languages as training set
 # Mini batch training 
 # %% Load Prepared Datasets
-%run functions.py 
+# %run functions.py 
 from functions import LSTMTagger
 # small sample for debugging
 # data_train = data_train[0:100]
 # data_test = data_test [0:100]
 # data_dev = data_dev[0:100]
+
+import pickle
+LanguageList = [
+    'HEBREW',
+    'ARABIC',
+    'PORTUGUESE',
+    'ITALIAN',
+    'FRENCH',
+    'SPANISH',
+    'GERMAN',
+    'ENGLISH',
+    'RUSSIAN',
+    'FINNISH',
+    'VIETNAMESE',
+    'KOREAN',
+    'CHINESE',
+    'JAPANESE'
+]
+data_train,data_test,data_dev=[],[],[]
+for language in LanguageList:
+    with open('./data/%s_Train.pickle'%language, 'rb') as f1:
+        train = pickle.load(f1)
+    with open('./data/%s_Test.pickle'%language, 'rb') as f2:
+        test = pickle.load(f2) 
+    with open('./data/%s_Dev.pickle'%language, 'rb') as f3:
+        dev = pickle.load(f3)
+    
+    data_train += train; data_test += test; data_dev += dev
+
+
+# %% character dictionary set and define other helper functions
+import numpy as np
+letter_to_ix = {}
+for sent, tags in data_train+data_test:
+    for letter in sent:
+        if letter not in letter_to_ix:
+            letter_to_ix[letter] = len(letter_to_ix)+1 # leave index 0 out 
+print('Nr. of distinguish character: ',len(letter_to_ix.keys()))
+# print(letter_to_ix.keys())
+
+tag_to_ix = {'B': 0, 'I': 1,'E':2,'S':3,'X':4} 
+ix_to_tag = {y:x for x,y in tag_to_ix.items()}
+
+def prediction(input):
+        output = [np.argmax(i) for i in input]
+        return [ix_to_tag[int(o)] for o in output]
+    
+def prepare_sequence(seq, to_ix):
+    idxs = [to_ix[w] for w in seq]
+    return torch.tensor(idxs, dtype=torch.long)
+
+def save_checkpoint(state, filename):
+    print("=> Saving checkpoint")
+    torch.save(state, filename)
+    
+def load_checkpoint(checkpoint, model, optimizer):
+    print("=> Loading checkpoint")
+    model.load_state_dict(checkpoint['state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer'])
+
+
+
+#%%
+import torch
+import torchvision
+import torch.nn as nn  
+import torch.optim as optim  
+import torch.nn.functional as F  
+from torch.utils.data import DataLoader
+from flair.embeddings import FlairEmbeddings
+from flair.models import LanguageModel
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+torch.manual_seed(1)
+
 
 # %% Hyperparameters
 tagset_size = len(tag_to_ix)
