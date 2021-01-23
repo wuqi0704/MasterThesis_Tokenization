@@ -180,7 +180,7 @@ for epoch in tqdm(range(EPOCH)):
         dev_loss += loss.item()
 
     # save the best model using to dev loss 
-    if epoch = 0: 
+    if epoch == 0: 
         lowest_dev_loss = dev_loss/len(dev_loader)
         checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
         save_checkpoint(checkpoint,filename)
