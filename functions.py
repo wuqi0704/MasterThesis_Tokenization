@@ -84,7 +84,7 @@ class LSTMTagger(nn.Module):
         self.batch_size = batch_size
 
         self.character_embeddings = nn.Embedding(character_size, embedding_dim) 
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers=num_layers, batch_first=False, bidirectional=True,dropout=0.5)
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers=num_layers, batch_first=False, bidirectional=True)
         # The linear layer that maps from hidden state space to tag space
         self.hidden2tag = nn.Linear(hidden_dim * 2, tagset_size)
 

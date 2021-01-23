@@ -47,7 +47,7 @@ letter_to_ix = {}
 for sent, tags in data_train+data_test+data_dev:
     for letter in sent:
         if letter not in letter_to_ix:
-            letter_to_ix[letter] = len(letter_to_ix)+1 # leave index 0 out 
+            letter_to_ix[letter] = len(letter_to_ix) # leave index 0 out 
 print('Nr. of distinguish character: ',len(letter_to_ix.keys()))
 # print(letter_to_ix.keys())
 
