@@ -73,25 +73,32 @@ def load_checkpoint(checkpoint, model, optimizer):
 
 
 # %% Hyperparameters
+import torch
+import torchvision
+import torch.nn as nn  
+import torch.optim as optim  
+import torch.nn.functional as F  
+from torch.utils.data import DataLoader
+from flair.embeddings import FlairEmbeddings
+from flair.models import LanguageModel
 
-%run functions.py 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+torch.manual_seed(1)
+
 from functions import LSTMTagger
 
 num_classes = 5
-embedding_dim = 2048 # note: maybe try smaller size?
+# embedding_dim = 2048 # note: maybe try smaller size?
+embedding_dim = 256
 hidden_dim = 256 # hidden_size = 256
 EPOCH = 10
 learning_rate = 0.1
 batch_size = 1
 num_layers = 1
 character_size = len(letter_to_ix)
-# not using this since batch size is 1
-# train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
-# test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
-
 
 # Initialize network
-model = LSTMTagger(embedding_dim=embedding_dim, num_layers = num_layers,hidden_dim=hidden_dim,tagset_size=num_classes,character_size=character_size)
+model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size)
 if(torch.cuda.is_available()):
 	print(torch.cuda.current_device())
 model = model.to(device); model.train()
@@ -100,7 +107,8 @@ loss_function = nn.NLLLoss()
 
 # %% Train Model
 
-filename = "./trained_models/BiLSTM_ML.tar"
+# filename = "./trained_models/BiLSTM_ML.tar"
+filename = "./trained_models/BiLSTM_ML256.tar"
 # For continusly training 
 # load_model = True
 # if load_model: load_checkpoint(torch.load(filename), model, optimizer)

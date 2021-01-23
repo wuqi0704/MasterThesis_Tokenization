@@ -117,6 +117,7 @@ class LSTMTagger(nn.Module):
 
         return tag_scores
 
+print("yohooo")
 # #%% try example 
 
 # def prepare_batch(batch, to_ix):

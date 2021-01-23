@@ -6,6 +6,7 @@
 # Mini batch training 
 # %% Load Prepared Datasets
 # %run functions.py 
+
 from functions import LSTMTagger
 # small sample for debugging
 # data_train = data_train[0:100]
@@ -44,7 +45,7 @@ for language in LanguageList:
 # %% character dictionary set and define other helper functions
 import numpy as np
 letter_to_ix = {}
-letter_to_ix[' '] = 0
+letter_to_ix[''] = 0
 for sent, tags in data_train+data_test+data_dev:
     for letter in sent:
         if letter not in letter_to_ix:
@@ -195,22 +196,4 @@ for epoch in tqdm(range(EPOCH)):
     print("develop Loss: ",dev_loss/len(dev_loader))
     print("--- %s seconds ---" % (time.time() - start_time))
 
-
-# #%%
-# from flair.models import SequenceTagger
-
-# tagger: SequenceTagger = SequenceTagger(hidden_size=256,
-#                                         embeddings=embeddings,
-#                                         tag_dictionary=tag_dictionary,
-#                                         tag_type=tag_type,
-#                                         use_crf=False)
-
-# from flair.trainers import ModelTrainer
-
-# trainer: ModelTrainer = ModelTrainer(tagger, corpus)
-
-# trainer.train('resources/taggers/BiLSTM_ML',
-#               learning_rate=0.1,
-#               mini_batch_size=32,
-#               max_epochs=10)
 
