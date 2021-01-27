@@ -161,7 +161,7 @@ for epoch in tqdm(range(MAX_EPOCH)):
             break
 
     checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
-    save_checkpoint(checkpoint)
+    save_checkpoint(checkpoint,filename)
 
     print("Loss: ",running_loss/len(data_train))
     print("--- %s seconds ---" % (time.time() - start_time))
