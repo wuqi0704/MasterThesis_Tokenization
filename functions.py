@@ -2,7 +2,7 @@
 # coding: utf-8
 
 #%%
-import pickle
+print('functions.py: define language and language group list')
 LanguageList = [
     'HEBREW',
     'ARABIC',
@@ -19,6 +19,17 @@ LanguageList = [
     'CHINESE',
     'JAPANESE'
 ]
+g1 = ['HEBREW','ARABIC']
+g2 = ['PORTUGUESE','ITALIAN','FRENCH','SPANISH','GERMAN','ENGLISH','FINNISH']
+g3 = ['RUSSIAN', 'KOREAN']
+g4 = ['CHINESE','JAPANESE']
+g5 = ['VIETNAMESE']
+GroupList = [g1,g2,g3,g4,g5]
+GroupNameList = ['group%s'%str(i) for i in range(1,6)]
+
+# %% character dictionary set and define other helper functions
+print("character dictionary set and define other helper functions")
+import pickle
 data_train,data_test,data_dev=[],[],[]
 for language in LanguageList:
     with open('./data/%s_Train.pickle'%language, 'rb') as f1:
@@ -30,16 +41,14 @@ for language in LanguageList:
     
     data_train += train; data_test += test; data_dev += dev
 
-
-# %% character dictionary set and define other helper functions
 import numpy as np
 letter_to_ix = {}
-for sent, tags in data_train+data_test:
+letter_to_ix[''] = 0 # need this for padding
+for sent, tags in data_train+data_test+data_dev:
     for letter in sent:
         if letter not in letter_to_ix:
-            letter_to_ix[letter] = len(letter_to_ix)+1 # leave index 0 out 
-print('Nr. of distinguish character: ',len(letter_to_ix.keys()))
-# print(letter_to_ix.keys())
+            letter_to_ix[letter] = len(letter_to_ix)
+print('functions.py : Nr. of distinguish character: ',len(letter_to_ix.keys()))
 
 tag_to_ix = {'B': 0, 'I': 1,'E':2,'S':3,'X':4} 
 ix_to_tag = {y:x for x,y in tag_to_ix.items()}
@@ -52,6 +61,33 @@ def prepare_sequence(seq, to_ix):
     idxs = [to_ix[w] for w in seq]
     return torch.tensor(idxs, dtype=torch.long)
 
+def prediction_str(input):
+        output = [np.argmax(i) for i in input]
+        out_list = [ix_to_tag[int(o)] for o in output]
+        out_str = ''
+        for o in out_list:
+            out_str += o 
+        return out_str
+
+# create token list from BIESX tag 
+def find_token(sentence_str):
+    token = []; word = ''
+    
+    for  i,tag in enumerate(sentence_str[1]):
+        if tag == 'S':
+            token.append(sentence_str[0][i])
+            continue
+        if tag == 'X': 
+            continue 
+        if (tag == 'B') | (tag == 'I'): 
+            word += sentence_str[0][i] 
+            continue
+        if tag == 'E': 
+            word+=sentence_str[0][i]
+            token.append(word)
+            word=''
+    return token
+
 def save_checkpoint(state, filename):
     print("=> Saving checkpoint")
     torch.save(state, filename)
@@ -61,9 +97,17 @@ def load_checkpoint(checkpoint, model, optimizer):
     model.load_state_dict(checkpoint['state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer'])
 
+from torch.nn.utils.rnn import pad_sequence
+def prepare_batch(batch, to_ix):
+    tensor_list = []
+    for seq in batch:
+        idxs = [to_ix[w] for w in seq]
+        tensor = torch.tensor(idxs, dtype=torch.long)
+        tensor_list.append(tensor)
+    return pad_sequence(tensor_list,batch_first=False)
+    # with batch_first=False, the dimension come as (len(seq)#length of longest sequence,len(batch)#batch_size)
 
-
-#%%
+#%% define LSTM network
 import torch
 import torchvision
 import torch.nn as nn  
@@ -117,52 +161,27 @@ class LSTMTagger(nn.Module):
 
         return tag_scores
 
-print("yohooo")
-# #%% try example 
+#%% # Initialize network
 
-# def prepare_batch(batch, to_ix):
-#     tensor_list = []
-#     for seq in batch:
-#         idxs = [to_ix[w] for w in seq]
-#         tensor = torch.tensor(idxs, dtype=torch.long)
-#         tensor_list.append(tensor)
-#     return pad_sequence(tensor_list,batch_first=False)
+tagset_size = len(tag_to_ix)
+embedding_dim = 256 
+hidden_dim = 256 
+EPOCH = 10
+learning_rate = 0.1
+batch_size = 1
+num_layers = 1
+character_size = len(letter_to_ix)
+schuffle = True
+batch_first = False
 
-# tagset_size = 5
-# embedding_dim = 256 
-# hidden_dim = 256 
-# EPOCH = 10
-# learning_rate = 0.1
-# batch_size = 2
-# num_layers = 1
-# character_size = len(letter_to_ix)
+# initialize network
+model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size)
 
-# # mini_batch of datasets
-# train_loader = DataLoader(dataset=data_train, batch_size=batch_size, shuffle=True)
-# test_loader = DataLoader(dataset=data_test, batch_size=batch_size, shuffle=True)
+if(torch.cuda.is_available()):
+	print(torch.cuda.current_device())
+model = model.to(device)
+model.train()
+optimizer = optim.SGD(model.parameters(), learning_rate)
+loss_function = nn.NLLLoss()
+checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
 
-# # model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size=1)
-# # (sentence,tag) = data_train[0]
-# # sentence_in = prepare_sequence(sentence,letter_to_ix)
-# # targets = prepare_sequence(tag,tag_to_ix)
-# # tag_scores = model(sentence_in)
-# # tag_scores.shape
-
-# model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size=2)
-
-# (data, tag) = list(train_loader)[9]
-
-# batch_in = prepare_batch(data,letter_to_ix)
-# targets = prepare_batch(tag,tag_to_ix)
-# tag_scores = model(batch_in)
-
-
-# print(tag_scores.shape)
-# targets
-
-# #%%
-
-# tag_scores.shape
-# targets
-# #%%
-# nn.NLLLoss(tag_scores,targets)
