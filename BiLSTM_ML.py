@@ -4,13 +4,11 @@
 # # LSTM for Word Boundaries
 # train multilingual model using all languages as training set
 
-#%%
 # small sample for debugging
 # data_train = data_train[0:10]
 # data_test = data_test [0:10]
 
-#%%
-# %run functions.py
+#%run functions.py
 # filename = "./trained_models/BiLSTM_ML.tar"
 filename = "./trained_models/BiLSTM_ML256.tar"
 # For continusly training 
@@ -22,7 +20,7 @@ from tqdm import tqdm; import time
 for epoch in tqdm(range(MAX_EPOCH)): 
     start_time = time.time()
     running_loss = 0
-    for sentence, tags in tqdm(data_train,position=0,leave = True):
+    for sentence, tags in data_train:
         # Step 1. Remember that Pytorch accumulates gradients.
         # We need to clear them out before each instance
         model.zero_grad()
