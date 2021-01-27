@@ -4,7 +4,7 @@
 # # LSTM for Word Boundaries
 # train multilingual model using all languages as training set
 # %% Load Prepared Datasets
-
+import torch
 import pickle
 LanguageList = [
     'HEBREW',
