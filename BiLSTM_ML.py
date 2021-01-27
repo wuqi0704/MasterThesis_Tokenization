@@ -4,11 +4,12 @@
 # # LSTM for Word Boundaries
 # train multilingual model using all languages as training set
 
+from functions import *
 # small sample for debugging
 # data_train = data_train[0:10]
 # data_test = data_test [0:10]
 
-# %run functions.py
+#%%
 # filename = "./trained_models/BiLSTM_ML.tar"
 filename = "./trained_models/BiLSTM_ML256.tar"
 # For continusly training 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-
 #%%
 print('functions.py: define language and language group list')
 LanguageList = [
@@ -27,7 +26,7 @@ g5 = ['VIETNAMESE']
 GroupList = [g1,g2,g3,g4,g5]
 GroupNameList = ['group%s'%str(i) for i in range(1,6)]
 
-# %% character dictionary set and define other helper functions
+# character dictionary set and define other helper functions
 print("character dictionary set and define other helper functions")
 import pickle
 data_train,data_test,data_dev=[],[],[]
@@ -107,7 +106,6 @@ def prepare_batch(batch, to_ix):
     return pad_sequence(tensor_list,batch_first=False)
     # with batch_first=False, the dimension come as (len(seq)#length of longest sequence,len(batch)#batch_size)
 
-#%% define LSTM network
 import torch
 import torchvision
 import torch.nn as nn  
@@ -120,7 +118,9 @@ from flair.models import LanguageModel
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(1)
 
+
 class LSTMTagger(nn.Module):
+
     def __init__(self, character_size, embedding_dim, hidden_dim,num_layers,tagset_size,batch_size) :
         super(LSTMTagger, self).__init__()
         self.hidden_dim = hidden_dim
@@ -161,12 +161,12 @@ class LSTMTagger(nn.Module):
 
         return tag_scores
 
-#%% # Initialize network
 
+# Initialize network
 tagset_size = len(tag_to_ix)
 embedding_dim = 256 
 hidden_dim = 256 
-EPOCH = 10
+Max_EPOCH = 10
 learning_rate = 0.1
 batch_size = 1
 num_layers = 1
@@ -174,11 +174,10 @@ character_size = len(letter_to_ix)
 schuffle = True
 batch_first = False
 
-# initialize network
 model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size)
 
 if(torch.cuda.is_available()):
-	print(torch.cuda.current_device())
+    print(torch.cuda.current_device())
 model = model.to(device)
 model.train()
 optimizer = optim.SGD(model.parameters(), learning_rate)
