@@ -8,7 +8,7 @@
 # data_train = data_train[0:10]
 # data_test = data_test [0:10]
 
-#%run functions.py
+# %run functions.py
 # filename = "./trained_models/BiLSTM_ML.tar"
 filename = "./trained_models/BiLSTM_ML256.tar"
 # For continusly training 
