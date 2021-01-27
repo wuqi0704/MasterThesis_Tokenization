@@ -166,7 +166,7 @@ class LSTMTagger(nn.Module):
 tagset_size = len(tag_to_ix)
 embedding_dim = 256 
 hidden_dim = 256 
-Max_EPOCH = 10
+MAX_EPOCH = 10
 learning_rate = 0.1
 batch_size = 1
 num_layers = 1
