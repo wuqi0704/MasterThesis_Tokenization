@@ -40,7 +40,7 @@ for language in LanguageList:
             # Step 3. Run our forward pass.
             tag_scores = model(sentence_in)
             loss = loss_function(tag_scores,targets)
-            
+
             # Step 4. Compute the loss, gradients, and update the parameters by calling optimizer.step()
             running_loss += loss.item()
             loss.backward()
