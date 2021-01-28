@@ -12,16 +12,15 @@ from functions import *
 #%%
 # filename = "./trained_models/BiLSTM_ML.tar"
 filename = "./trained_models/BiLSTM_ML256.tar"
-# For continusly training 
-# load_model = True
-# if load_model: load_checkpoint(torch.load(filename), model, optimizer)
+
+load_checkpoint(torch.load(filename), model, optimizer)
 
 from tqdm import tqdm; import time
-
+MAX_EPOCH = 3
 for epoch in tqdm(range(MAX_EPOCH)): 
     start_time = time.time()
     running_loss = 0
-    for sentence, tags in data_train:
+    for sentence, tags in tqdm(data_train,position=0,leave = True):
         # Step 1. Remember that Pytorch accumulates gradients.
         # We need to clear them out before each instance
         model.zero_grad()

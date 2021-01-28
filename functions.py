@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 #%%
-print('functions.py: define language and language group list')
+
 LanguageList = [
     'HEBREW',
     'ARABIC',
@@ -27,7 +27,7 @@ GroupList = [g1,g2,g3,g4,g5]
 GroupNameList = ['group%s'%str(i) for i in range(1,6)]
 
 # character dictionary set and define other helper functions
-print("character dictionary set and define other helper functions")
+
 import pickle
 data_train,data_test,data_dev=[],[],[]
 for language in LanguageList:
@@ -134,7 +134,7 @@ class LSTMTagger(nn.Module):
 
     def forward(self,sentence):
         if self.batch_size>1:
-            embeds = self.character_embeddings(sentence)
+            embeds = self.character_embeddings(sentence) 
             # print(embeds.shape)
             x = embeds.view(len(sentence), self.batch_size, -1)
             # print('x',x.shape)
@@ -153,7 +153,7 @@ class LSTMTagger(nn.Module):
             # print('x',x.shape)
             out, _ = self.lstm(x)
             # print(out.shape)
-            print(out.view(len(sentence), -1).shape)
+            # print(out.view(len(sentence), -1).shape)
             tag_space = self.hidden2tag(out.view(len(sentence), -1))
             # print(tag_space.shape)
             tag_scores = F.log_softmax(tag_space, dim=1)
@@ -172,7 +172,7 @@ batch_size = 1
 num_layers = 1
 character_size = len(letter_to_ix)
 schuffle = True
-batch_first = False
+batch_first = False 
 
 model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size)
 
