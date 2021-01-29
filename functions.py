@@ -171,7 +171,7 @@ learning_rate = 0.1
 batch_size = 1
 num_layers = 1
 character_size = len(letter_to_ix)
-schuffle = True
+shuffle = True
 batch_first = False 
 
 model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size)
