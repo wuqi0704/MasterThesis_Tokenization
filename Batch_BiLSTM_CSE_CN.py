@@ -13,7 +13,20 @@ with open('./data/%s_Dev.pickle'%language, 'rb') as f3:
 #%%
 # %% Train Model
 embedding_dim = 4096 # because using CSE 
+batch_size = 10
+
+train_loader = DataLoader(dataset=data_train, batch_size=batch_size, shuffle=shuffle)
+dev_loader = DataLoader(dataset=data_dev, batch_size=batch_size, shuffle=shuffle)
+
+# Initialize network
+model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size)
+if(torch.cuda.is_available()):
+	print(torch.cuda.current_device())
+model = model.to(device); model.train()
+optimizer = optim.SGD(model.parameters(), learning_rate)
+loss_function = nn.NLLLoss()
 filename = "./trained_models/BiLSTM_CSE_CN.tar"
+
 # For continusly training 
 # load_model = True
 # if load_model: load_checkpoint(torch.load(filename), model, optimizer)
