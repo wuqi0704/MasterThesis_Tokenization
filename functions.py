@@ -121,50 +121,65 @@ torch.manual_seed(1)
 
 class LSTMTagger(nn.Module):
 
-    def __init__(self, character_size, embedding_dim, hidden_dim,num_layers,tagset_size,batch_size) :
+    def __init__(self, 
+                 character_size, 
+                 embedding_dim, 
+                 hidden_dim,
+                 num_layers,
+                 tagset_size,
+                 batch_size,
+                 use_CSE = False,
+                 use_CRF = False,
+    ) :
         super(LSTMTagger, self).__init__()
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
         self.batch_size = batch_size
+        self.use_CSE = use_CSE
 
         self.character_embeddings = nn.Embedding(character_size, embedding_dim) 
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers=num_layers, batch_first=False, bidirectional=True)
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers, batch_first=False, bidirectional=True)
         # The linear layer that maps from hidden state space to tag space
         self.hidden2tag = nn.Linear(hidden_dim * 2, tagset_size)
+        if self.use_CSE == True:
+            self.lm_f: LanguageModel = FlairEmbeddings('multi-forward').lm
+            self.lm_b: LanguageModel = FlairEmbeddings('multi-backward').lm  
 
     def forward(self,sentence):
-        if self.batch_size>1:
-            embeds = self.character_embeddings(sentence) 
-            # print(embeds.shape)
+        if self.batch_size > 1:
+            if self.use_CSE == True:
+                embeds_f = self.lm_f.get_representation(list(sentence),'\n','\n')[1:-1,:,:]
+                embeds_b = self.lm_b.get_representation(list(sentence),'\n','\n')[1:-1,:,:]
+                embeds = torch.cat((embeds_f,embeds_b),dim=2)
+            elif self.use_CSE == False:
+                embeds = self.character_embeddings(sentence) 
+
             x = embeds.view(len(sentence), self.batch_size, -1)
-            # print('x',x.shape)
             h0 = torch.zeros(self.num_layers * 2, self.batch_size, self.hidden_dim).to(device)
             c0 = torch.zeros(self.num_layers * 2, self.batch_size, self.hidden_dim).to(device)
             out, _ = self.lstm(x, (h0, c0))
-            # print(out.shape)
             tag_space = self.hidden2tag(out.view(len(sentence),self.batch_size, -1))
-            # print(tag_space.shape)
             tag_scores = F.log_softmax(tag_space, dim=2) # dim = (len(sentence),batch,len(tag))
         
-        else:   
-            embeds = self.character_embeddings(sentence)
-            # print(embeds.shape)
+        elif self.batch_size == 1:   
+            if self.use_CSE == True:
+                embeds_f = self.lm_f.get_representation([sentence],'\n','\n')[1:-1,:,:] # leave out begin and end mark
+                embeds_b = self.lm_b.get_representation([sentence],'\n','\n')[1:-1,:,:]
+                embeds = torch.cat((embeds_f,embeds_b),dim=2)
+            elif self.use_CSE == False:
+                embeds = self.character_embeddings(sentence) 
+
             x = embeds.view(len(sentence), 1, -1) # add one more dimension, batch_size = 1 
-            # print('x',x.shape)
             out, _ = self.lstm(x)
-            # print(out.shape)
-            # print(out.view(len(sentence), -1).shape)
             tag_space = self.hidden2tag(out.view(len(sentence), -1))
-            # print(tag_space.shape)
             tag_scores = F.log_softmax(tag_space, dim=1)
-            # print(tag_scores.shape)
 
         return tag_scores
 
 
 # Initialize network
 tagset_size = len(tag_to_ix)
-embedding_dim = 256 
+embedding_dim = 256
 hidden_dim = 256 
 MAX_EPOCH = 10
 learning_rate = 0.1
