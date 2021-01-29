@@ -13,7 +13,7 @@ for language in LanguageList:
         test = pickle.load(f2) 
     data_test[language]  = test 
 
-#%%
+
 # type of issues:
 # 1. fail to extract any tokens -> len(candidate) = 0
 # 2. fail to match any correct tokens -> len(inter) = 0
@@ -22,7 +22,8 @@ for language in LanguageList:
 ### Word Level Evaluation 
 # case 1 : BiLSTM_ML
 
-model_name = '.\trained_models\BiLSTM_ML.tar'
+# model_name = '.\trained_models\BiLSTM_ML.tar'
+model_name = '.\trained_models\BiLSTM_ML256.tar'
 load_checkpoint(torch.load(model_name,map_location=torch.device('cpu')), model, optimizer)
 
 from tqdm import tqdm; import numpy as np; import sklearn; import pandas as pd
@@ -60,8 +61,9 @@ with torch.no_grad():
 
 results = pd.DataFrame.from_dict(Result_ML, orient='index')
 results.columns = ['Recall','Precision','F1 score']
-results.to_csv('./results/BiLSTM_ML.csv')
+results.to_csv('./results/BiLSTM_ML256.csv')
 
+#%%
 # case 2 : BiLSTM_SL
 
 from tqdm import tqdm;import numpy as np;import sklearn
