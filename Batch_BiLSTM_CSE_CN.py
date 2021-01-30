@@ -10,8 +10,9 @@ with open('./data/%s_Train.pickle'%language, 'rb') as f1:
     data_train = pickle.load(f1)
 with open('./data/%s_Dev.pickle'%language, 'rb') as f3:
     data_dev = pickle.load(f3)
-#%%
+
 # %% Train Model
+use_CSE = True
 embedding_dim = 4096 # because using CSE 
 batch_size = 10
 
@@ -19,7 +20,7 @@ train_loader = DataLoader(dataset=data_train, batch_size=batch_size, shuffle=shu
 dev_loader = DataLoader(dataset=data_dev, batch_size=batch_size, shuffle=shuffle)
 
 # Initialize network
-model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size,use_CSE=True)
+model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size,use_CSE=use_CSE)
 if(torch.cuda.is_available()):
 	print(torch.cuda.current_device())
 model = model.to(device); model.train()
@@ -43,17 +44,20 @@ for epoch in tqdm(range(MAX_EPOCH)):
         model.zero_grad()
         
         # Step 2. Get our inputs ready for the network
+
         batch_in = prepare_batch(data,letter_to_ix).to(device=device)
-        targets = prepare_batch(tags,tag_to_ix).to(device=device)
         
+        targets = prepare_batch(tags,tag_to_ix).to(device=device)
         # Step 3. Run our forward pass.
         length_list = []
         if batch_in.shape[1] != batch_size:
             continue 
         for sentence in data: 
             length_list.append(len(sentence))
+        
+        if use_CSE == True: tag_scores = model(data)
+        else: tag_scores = model(batch_in)
 
-        tag_scores = model(batch_in)
         tag_scores = pack_padded_sequence(tag_scores,length_list,enforce_sorted=False).data
         targets = pack_padded_sequence(targets,length_list,enforce_sorted=False).data
         loss = loss_function(tag_scores,targets) 
@@ -73,8 +77,9 @@ for epoch in tqdm(range(MAX_EPOCH)):
             continue 
         for sentence in data: 
             length_list.append(len(sentence))
+        if use_CSE == True: tag_scores = model(data)
+        else: tag_scores = model(batch_in)
 
-        tag_scores = model(batch_in)
         tag_scores = pack_padded_sequence(tag_scores,length_list,enforce_sorted=False).data
         targets = pack_padded_sequence(targets,length_list,enforce_sorted=False).data
         loss = loss_function(tag_scores,targets) 
@@ -97,3 +102,25 @@ for epoch in tqdm(range(MAX_EPOCH)):
     print("training Loss: ",running_loss/len(train_loader))
     print("develop Loss: ",dev_loss/len(dev_loader))
     print("--- %s seconds ---" % (time.time() - start_time))
+
+#%%
+
+sentence = data
+embeds = prepare_cse(sentence,batch_size=batch_size)
+embeds = embeds.to(device=device)
+character_embeddings = nn.Embedding(character_size, embedding_dim)
+
+batch_in = prepare_batch(sentence,letter_to_ix)
+
+# %%
+lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers, batch_first=False, bidirectional=True)
+
+#%%
+x = embeds
+h0 = torch.zeros(num_layers * 2, batch_size, hidden_dim).to(device)
+c0 = torch.zeros(num_layers * 2, batch_size, hidden_dim).to(device)
+out, _ = lstm(x, (h0, c0))
+# %%
+embeds.shape
+
+#%%
