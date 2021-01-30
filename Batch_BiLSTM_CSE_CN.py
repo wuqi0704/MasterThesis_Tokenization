@@ -19,7 +19,7 @@ train_loader = DataLoader(dataset=data_train, batch_size=batch_size, shuffle=shu
 dev_loader = DataLoader(dataset=data_dev, batch_size=batch_size, shuffle=shuffle)
 
 # Initialize network
-model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size)
+model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size,use_CSE=True)
 if(torch.cuda.is_available()):
 	print(torch.cuda.current_device())
 model = model.to(device); model.train()
