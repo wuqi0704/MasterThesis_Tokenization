@@ -36,6 +36,7 @@ for sentence in data:
 tag_scores = pack_padded_sequence(tag_scores,length_list,enforce_sorted=False).data
 targets = pack_padded_sequence(targets,length_list,enforce_sorted=False).data
 loss = loss_function(tag_scores,targets) 
+loss.backward()
 
 #%%
 print('No Problem!')
