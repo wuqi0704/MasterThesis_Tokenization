@@ -38,4 +38,4 @@ targets = pack_padded_sequence(targets,length_list,enforce_sorted=False).data
 loss = loss_function(tag_scores,targets) 
 
 #%%
-loss
+print('No Problem!')
