@@ -356,7 +356,7 @@ batch_first = False
 model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size)
 
 if(torch.cuda.is_available()):
-    print('GPU is available',torch.cuda.current_device())
+    print('GPU is available:',torch.cuda.current_device())
 model = model.to(device); model.train()
 optimizer = optim.SGD(model.parameters(), learning_rate)
 loss_function = nn.NLLLoss()
