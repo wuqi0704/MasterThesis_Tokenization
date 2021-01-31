@@ -12,7 +12,7 @@ with open('./data/%s_Dev.pickle'%language, 'rb') as f3:
     data_dev = pickle.load(f3)
 
 # %% Train Model
-use_CSE = False
+use_CSE = True
 embedding_dim = 4096 # because using CSE 
 batch_size = 10
 
@@ -44,9 +44,10 @@ for epoch in tqdm(range(MAX_EPOCH)):
         model.zero_grad()
         
         # Step 2. Get our inputs ready for the network
-        if use_CSE == True:
-            batch_in = prepare_cse(data,batch_size=batch_size).to(device=device)
-        else : batch_in = prepare_batch(data,letter_to_ix).to(device=device)
+        if use_CSE == True: 
+            batch_in = prepare_cse(data,batch_size=batch_size).to(device=device) # shape len(longest sentence),batch_size,embedding_dim=4096
+        elif use_CSE == False : 
+            batch_in = prepare_batch(data,letter_to_ix).to(device=device)# shape len(longest sentence),batch_size
         
         targets = prepare_batch(tags,tag_to_ix).to(device=device)
         # Step 3. Run our forward pass.
@@ -71,7 +72,8 @@ for epoch in tqdm(range(MAX_EPOCH)):
     for batch_idx, (data, tags) in tqdm(enumerate(dev_loader),position=0,leave=True):
         if use_CSE == True:
             batch_in = prepare_cse(data,batch_size=batch_size).to(device=device)
-        else : batch_in = prepare_batch(data,letter_to_ix).to(device=device)
+        elif use_CSE == False : 
+            batch_in = prepare_batch(data,letter_to_ix).to(device=device)
 
         targets = prepare_batch(tags,tag_to_ix).to(device=device)
         length_list = []
@@ -79,6 +81,7 @@ for epoch in tqdm(range(MAX_EPOCH)):
             continue 
         for sentence in data: 
             length_list.append(len(sentence))
+        
         tag_scores = model(batch_in)
 
         tag_scores = pack_padded_sequence(tag_scores,length_list,enforce_sorted=False).data
@@ -106,22 +109,22 @@ for epoch in tqdm(range(MAX_EPOCH)):
 
 #%%
 
-sentence = data
-embeds = prepare_cse(sentence,batch_size=batch_size)
-embeds = embeds.to(device=device)
-character_embeddings = nn.Embedding(character_size, embedding_dim)
+# sentence = data
+# embeds = prepare_cse(sentence,batch_size=batch_size)
+# embeds = embeds.to(device=device)
+# character_embeddings = nn.Embedding(character_size, embedding_dim)
 
-batch_in = prepare_batch(sentence,letter_to_ix)
+# batch_in = prepare_batch(sentence,letter_to_ix)
 
+# # %%
+# lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers, batch_first=False, bidirectional=True)
+
+# #%%
+# x = embeds
+# h0 = torch.zeros(num_layers * 2, batch_size, hidden_dim).to(device)
+# c0 = torch.zeros(num_layers * 2, batch_size, hidden_dim).to(device)
+# out, _ = lstm(x, (h0, c0))
 # %%
-lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers, batch_first=False, bidirectional=True)
-
-#%%
-x = embeds
-h0 = torch.zeros(num_layers * 2, batch_size, hidden_dim).to(device)
-c0 = torch.zeros(num_layers * 2, batch_size, hidden_dim).to(device)
-out, _ = lstm(x, (h0, c0))
-# %%
-embeds.shape
+# embeds.shape
 
 #%%
