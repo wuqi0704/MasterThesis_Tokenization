@@ -12,7 +12,7 @@ with open('./data/%s_Dev.pickle'%language, 'rb') as f3:
     data_dev = pickle.load(f3)
 
 # %% Train Model
-use_CSE = True
+use_CSE = False
 embedding_dim = 4096 # because using CSE 
 batch_size = 10
 

@@ -15,9 +15,11 @@ from functions import *
 
 batch_size = 10
 MAX_EPOCH = 30
+
 # mini_batch of datasets
 train_loader = DataLoader(dataset=data_train, batch_size=batch_size, shuffle=shuffle)
 dev_loader = DataLoader(dataset=data_dev, batch_size=batch_size, shuffle=shuffle)
+
 
 # Initialize network
 model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size)
