@@ -1,8 +1,8 @@
 
 #%%
-from Users.wuqi.MasterThesis_Tokenization.functions import prepare_cse
+# from Users.wuqi.MasterThesis_Tokenization.functions import prepare_cse
 from functions import *
-
+# from torch.nn.utils.rnn import pad_sequence
 #%%
 use_CSE = True
 embedding_dim = 4096 # because using CSE 
@@ -23,12 +23,19 @@ loss_function = nn.NLLLoss()
 item = iter(train_loader)
 data,tags = item.next()
 #%%
-embedprepare_cse(data,batch_size=batch_size)
+batch_in = prepare_cse(data,batch_size=batch_size)
+targets = prepare_batch(tags,tag_to_ix).to(device=device)
+# batch_in = prepare_batch(data,letter_to_ix)
+# character_embeddings = nn.Embedding(character_size, embedding_dim)
+# embed = character_embeddings(sentence)
+from torch.nn.utils.rnn import pack_padded_sequence
+tag_scores = model(batch_in)
+length_list = []
+for sentence in data: 
+    length_list.append(len(sentence))
+tag_scores = pack_padded_sequence(tag_scores,length_list,enforce_sorted=False).data
+targets = pack_padded_sequence(targets,length_list,enforce_sorted=False).data
+loss = loss_function(tag_scores,targets) 
 
 #%%
-sentence = prepare_batch(data,letter_to_ix)
-character_embeddings = nn.Embedding(character_size, embedding_dim)
-embed = character_embeddings(sentence)
-
-#%%
-embed
+loss
