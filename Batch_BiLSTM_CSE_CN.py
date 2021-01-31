@@ -44,8 +44,9 @@ for epoch in tqdm(range(MAX_EPOCH)):
         model.zero_grad()
         
         # Step 2. Get our inputs ready for the network
-
-        batch_in = prepare_batch(data,letter_to_ix).to(device=device)
+        if use_CSE == True:
+            batch_in = prepare_cse(data,batch_size=batch_size).to(device=device)
+        else : batch_in = prepare_batch(data,letter_to_ix).to(device=device)
         
         targets = prepare_batch(tags,tag_to_ix).to(device=device)
         # Step 3. Run our forward pass.
@@ -54,10 +55,8 @@ for epoch in tqdm(range(MAX_EPOCH)):
             continue 
         for sentence in data: 
             length_list.append(len(sentence))
-        
-        if use_CSE == True: tag_scores = model(data)
-        else: tag_scores = model(batch_in)
 
+        tag_scores = model(batch_in)
         tag_scores = pack_padded_sequence(tag_scores,length_list,enforce_sorted=False).data
         targets = pack_padded_sequence(targets,length_list,enforce_sorted=False).data
         loss = loss_function(tag_scores,targets) 
@@ -70,15 +69,17 @@ for epoch in tqdm(range(MAX_EPOCH)):
     # compute development set loss 
     dev_loss = 0
     for batch_idx, (data, tags) in tqdm(enumerate(dev_loader),position=0,leave=True):
-        batch_in = prepare_batch(data,letter_to_ix).to(device=device)
+        if use_CSE == True:
+            batch_in = prepare_cse(data,batch_size=batch_size).to(device=device)
+        else : batch_in = prepare_batch(data,letter_to_ix).to(device=device)
+
         targets = prepare_batch(tags,tag_to_ix).to(device=device)
         length_list = []
         if batch_in.shape[1] != batch_size:
             continue 
         for sentence in data: 
             length_list.append(len(sentence))
-        if use_CSE == True: tag_scores = model(data)
-        else: tag_scores = model(batch_in)
+        tag_scores = model(batch_in)
 
         tag_scores = pack_padded_sequence(tag_scores,length_list,enforce_sorted=False).data
         targets = pack_padded_sequence(targets,length_list,enforce_sorted=False).data
