@@ -28,7 +28,7 @@ GroupNameList = ['group%s'%str(i) for i in range(1,6)]
 # character dictionary set and define other helper functions
 
 import pickle
-data_train_,data_test_,data_dev_=[],[],[]
+data_train,data_test,data_dev=[],[],[]
 for language in LanguageList:
     with open('./data/%s_Train.pickle'%language, 'rb') as f1:
         train = pickle.load(f1)
@@ -37,12 +37,12 @@ for language in LanguageList:
     with open('./data/%s_Dev.pickle'%language, 'rb') as f3:
         dev = pickle.load(f3)
     
-    data_train_ += train; data_test_ += test; data_dev_ += dev
+    data_train += train; data_test += test; data_dev += dev
 
 import numpy as np
 letter_to_ix = {}
 letter_to_ix[''] = 0 # need this for padding
-for sent, tags in data_train_+data_test_+data_dev_:
+for sent, tags in data_train+data_test+data_dev:
     for letter in sent:
         if letter not in letter_to_ix:
             letter_to_ix[letter] = len(letter_to_ix)

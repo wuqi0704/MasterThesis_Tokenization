@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-# # LSTM for Word Boundaries
+#%% # # LSTM for Word Boundaries
 # train multilingual model using all languages as training set
 
 from bilstm import *
@@ -13,8 +12,6 @@ from bilstm import *
 # filename = "./trained_models/BiLSTM_ML.tar"
 filename = "./trained_models/BiLSTM_ML256.tar"
 model, optimizer,loss_function,checkpoint = initialize_model()
-load_checkpoint(torch.load(filename), model, optimizer)
-
 from tqdm import tqdm; import time
 MAX_EPOCH = 30
 for epoch in tqdm(range(MAX_EPOCH)): 
