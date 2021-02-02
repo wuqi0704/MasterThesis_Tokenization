@@ -14,7 +14,7 @@ dev_loader = DataLoader(dataset=data_dev, batch_size=batch_size, shuffle=shuffle
 # Initialize network
 model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size,use_CSE=use_CSE)
 if(torch.cuda.is_available()):
-	print(torch.cuda.current_device())
+	print('GPU is avaliable : print device: ',torch.cuda.current_device())
 model = model.to(device); model.train()
 optimizer = optim.SGD(model.parameters(), learning_rate)
 loss_function = nn.NLLLoss()
@@ -40,3 +40,6 @@ loss.backward()
 
 #%%
 print('No Problem!')
+
+#%%
+torch.full((1, tagset_size), -10000.).shape

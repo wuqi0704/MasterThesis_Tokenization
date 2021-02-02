@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-# coding: utf-8
-#%%
+#%% # langugae list, character dictionary set and other helper functions
 
 LanguageList = [
     'HEBREW',
@@ -26,43 +24,15 @@ g5 = ['VIETNAMESE']
 GroupList = [g1,g2,g3,g4,g5]
 GroupNameList = ['group%s'%str(i) for i in range(1,6)]
 
-# character dictionary set and define other helper functions
-
-import pickle
-data_train,data_test,data_dev=[],[],[]
-for language in LanguageList:
-    with open('./data/%s_Train.pickle'%language, 'rb') as f1:
-        train = pickle.load(f1)
-    with open('./data/%s_Test.pickle'%language, 'rb') as f2:
-        test = pickle.load(f2) 
-    with open('./data/%s_Dev.pickle'%language, 'rb') as f3:
-        dev = pickle.load(f3)
-    
-    data_train += train; data_test += test; data_dev += dev
-
-import numpy as np
-letter_to_ix = {}
-letter_to_ix[''] = 0 # need this for padding
-for sent, tags in data_train+data_test+data_dev:
-    for letter in sent:
-        if letter not in letter_to_ix:
-            letter_to_ix[letter] = len(letter_to_ix)
-print('functions.py : Nr. of distinguish character: ',len(letter_to_ix.keys()))
-
-tag_to_ix = {'B': 0, 'I': 1,'E':2,'S':3,'X':4} 
-ix_to_tag = {y:x for x,y in tag_to_ix.items()}
-
-def prediction(input):
-        output = [np.argmax(i) for i in input]
-        return [ix_to_tag[int(o)] for o in output]
+def prediction(tag_seq):
+        return [ix_to_tag[int(o)] for o in tag_seq]
     
 def prepare_sequence(seq, to_ix):
     idxs = [to_ix[w] for w in seq]
     return torch.tensor(idxs, dtype=torch.long)
 
-def prediction_str(input):
-        output = [np.argmax(i) for i in input]
-        out_list = [ix_to_tag[int(o)] for o in output]
+def prediction_str(tag_seq):
+        out_list = [ix_to_tag[int(o)] for o in tag_seq]
         out_str = ''
         for o in out_list:
             out_str += o 
@@ -86,15 +56,6 @@ def find_token(sentence_str):
             token.append(word)
             word=''
     return token
-
-def save_checkpoint(state, filename):
-    print("=> Saving checkpoint")
-    torch.save(state, filename)
-    
-def load_checkpoint(checkpoint, model, optimizer):
-    print("=> Loading checkpoint")
-    model.load_state_dict(checkpoint['state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer'])
 
 from torch.nn.utils.rnn import pad_sequence
 def prepare_batch(batch, to_ix):
@@ -128,81 +89,56 @@ def log_sum_exp(vec):
     max_score_broadcast = max_score.view(1, -1).expand(1, vec.size()[1])
     return max_score + \
         torch.log(torch.sum(torch.exp(vec - max_score_broadcast)))
+def save_checkpoint(state, filename):
+    print("=> Saving checkpoint")
+    torch.save(state, filename)
+    
+def load_checkpoint(checkpoint, model, optimizer):
+    print("=> Loading checkpoint")
+    model.load_state_dict(checkpoint['state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer'])
 
+import pickle
+data_train,data_test,data_dev=[],[],[]
+for language in LanguageList:
+    with open('./data/%s_Train.pickle'%language, 'rb') as f1:
+        train = pickle.load(f1)
+    with open('./data/%s_Test.pickle'%language, 'rb') as f2:
+        test = pickle.load(f2) 
+    with open('./data/%s_Dev.pickle'%language, 'rb') as f3:
+        dev = pickle.load(f3)
+    
+    data_train += train; data_test += test; data_dev += dev
+
+import numpy as np
+letter_to_ix = {}
+letter_to_ix[''] = 0 # need this for padding
+for sent, tags in data_train+data_test+data_dev:
+    for letter in sent:
+        if letter not in letter_to_ix:
+            letter_to_ix[letter] = len(letter_to_ix)
+print('functions.py : Nr. of distinguish character: ',len(letter_to_ix.keys()))
+#%% # define class BiLSTM_CRF
 import torch
-import torchvision
+# import torchvision
 import torch.nn as nn  
 import torch.optim as optim  
-import torch.nn.functional as F  
+# import torch.nn.functional as F  
 from torch.utils.data import DataLoader
 from flair.embeddings import FlairEmbeddings
 from flair.models import LanguageModel
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-torch.manual_seed(1)
-
-
-class LSTMTagger(nn.Module):
-
-    def __init__(self, 
-                 character_size, 
-                 embedding_dim, 
-                 hidden_dim,
-                 num_layers,
-                 tagset_size,
-                 batch_size,
-                 use_CSE = False,
-    ) :
-        super(LSTMTagger, self).__init__()
-        self.hidden_dim = hidden_dim
-        self.num_layers = num_layers
-        self.batch_size = batch_size
-        self.use_CSE = use_CSE
-
-        self.character_embeddings = nn.Embedding(character_size, embedding_dim) 
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers, batch_first=False, bidirectional=True)
-        # The linear layer that maps from hidden state space to tag space
-        self.hidden2tag = nn.Linear(hidden_dim * 2, tagset_size)
-
-    def forward(self,sentence):
-        if self.batch_size > 1:
-            if self.use_CSE == True:
-                embeds = sentence
-            elif self.use_CSE == False:
-                embeds = self.character_embeddings(sentence) 
-
-            x = embeds # #.view(len(embeds), self.batch_size, -1)
-            h0 = torch.zeros(self.num_layers * 2, self.batch_size, self.hidden_dim).to(device)
-            c0 = torch.zeros(self.num_layers * 2, self.batch_size, self.hidden_dim).to(device)
-            out, _ = self.lstm(x, (h0, c0))
-            # tag_space = self.hidden2tag(out.view(len(sentence),self.batch_size, -1))
-            tag_space = self.hidden2tag(out)
-            tag_scores = F.log_softmax(tag_space, dim=2) # dim = (len(sentence),batch,len(tag))
-        
-        elif self.batch_size == 1:   
-            if self.use_CSE == True:
-                embeds = sentence
-            elif self.use_CSE == False:
-                embeds = self.character_embeddings(sentence) 
-
-            x = embeds.view(len(sentence), 1, -1) # add one more dimension, batch_size = 1 
-            out, _ = self.lstm(x)
-            tag_space = self.hidden2tag(out.view(len(sentence), -1))
-            tag_scores = F.log_softmax(tag_space, dim=1)
-
-        return tag_scores
-
-
-
-
-#%%
 class BiLSTM_CRF(nn.Module):
 
     def __init__(self, 
                  character_size, 
                  tag_to_ix, 
                  embedding_dim, 
-                 hidden_dim):
+                 hidden_dim,
+                 batch_size,
+                 START_TAG = "<START>",
+                 STOP_TAG = "<STOP>"
+                 ):
 
         super(BiLSTM_CRF, self).__init__()
         self.embedding_dim = embedding_dim
@@ -210,13 +146,14 @@ class BiLSTM_CRF(nn.Module):
         self.character_size = character_size
         self.tag_to_ix = tag_to_ix
         self.tagset_size = len(tag_to_ix)
+        self.batch_size = batch_size
 
-        self.word_embeds = nn.Embedding(character_size, embedding_dim)
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim // 2,
+        self.character_embeds = nn.Embedding(character_size, embedding_dim)
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim , 
                             num_layers=1, bidirectional=True)
 
         # Maps the output of the LSTM into tag space.
-        self.hidden2tag = nn.Linear(hidden_dim, self.tagset_size)
+        self.hidden2tag = nn.Linear(hidden_dim * 2, self.tagset_size)
 
         # Matrix of transition parameters.  Entry i,j is the score of
         # transitioning *to* i *from* j.
@@ -231,8 +168,8 @@ class BiLSTM_CRF(nn.Module):
         self.hidden = self.init_hidden()
 
     def init_hidden(self):
-        return (torch.randn(2, 1, self.hidden_dim // 2),
-                torch.randn(2, 1, self.hidden_dim // 2))
+        return (torch.randn(2, 1, self.hidden_dim ),
+                torch.randn(2, 1, self.hidden_dim ))
 
     def _forward_alg(self, feats):
         # Do the forward algorithm to compute the partition function
@@ -261,15 +198,16 @@ class BiLSTM_CRF(nn.Module):
                 # scores.
                 alphas_t.append(log_sum_exp(next_tag_var).view(1))
             forward_var = torch.cat(alphas_t).view(1, -1)
+
         terminal_var = forward_var + self.transitions[self.tag_to_ix[STOP_TAG]]
         alpha = log_sum_exp(terminal_var)
         return alpha
 
     def _get_lstm_features(self, sentence):
         self.hidden = self.init_hidden()
-        embeds = self.word_embeds(sentence).view(len(sentence), 1, -1)
+        embeds = self.character_embeds(sentence).view(len(sentence), 1, -1)
         lstm_out, self.hidden = self.lstm(embeds, self.hidden)
-        lstm_out = lstm_out.view(len(sentence), self.hidden_dim)
+        lstm_out = lstm_out.view(len(sentence), self.hidden_dim *2)
         lstm_feats = self.hidden2tag(lstm_out)
         return lstm_feats
 
@@ -339,30 +277,40 @@ class BiLSTM_CRF(nn.Module):
 
         # Find the best path, given the features.
         score, tag_seq = self._viterbi_decode(lstm_feats)
-        return score, tag_seq
-#%%
-# Initialize network
-tagset_size = len(tag_to_ix)
+        return tag_seq
+
+print('successfully imported...')
+
+#%% # Initialize network BiLSTM_CRF
+# # define hyper parameter 
+
 embedding_dim = 256
 hidden_dim = 256 
-MAX_EPOCH = 10
-learning_rate = 0.1
+# learning_rate = 0.01
+# num_layers = 1
 batch_size = 1
-num_layers = 1
-character_size = len(letter_to_ix)
-shuffle = True
-batch_first = False 
+# use_CSE = False
 
-model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size)
+# MAX_EPOCH = 10
+# shuffle = True
+# batch_first = False 
 
-if(torch.cuda.is_available()):
-    print('GPU is available',torch.cuda.current_device())
-model = model.to(device); model.train()
-optimizer = optim.SGD(model.parameters(), learning_rate)
-loss_function = nn.NLLLoss()
-checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
+START_TAG = "<START>"; STOP_TAG = "<STOP>"
+tag_to_ix = {"B": 0, "I": 1, "E": 2,'S':3, 'X':4, START_TAG: 5, STOP_TAG: 6}
+ix_to_tag = {y:x for x,y in tag_to_ix.items()}
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+torch.manual_seed(1)
 
-#%%
-# out, _ = lstm(x, (h0, c0))
-# out.shape
+def initialize_model(character_size = len(letter_to_ix), 
+                     tag_to_ix = tag_to_ix, 
+                     embedding_dim= embedding_dim, 
+                     hidden_dim= hidden_dim,
+                     batch_size=batch_size):
+
+    model = BiLSTM_CRF(character_size, tag_to_ix, embedding_dim, hidden_dim,batch_size)
+    model = model.to(device); model.train()
+    optimizer = optim.SGD(model.parameters(), lr=0.01, weight_decay=1e-4)
+    checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
+    return model, optimizer,checkpoint
+# why is the lr so low here? compare to bilstm?
