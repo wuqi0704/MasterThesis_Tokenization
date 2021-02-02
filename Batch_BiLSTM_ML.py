@@ -6,7 +6,7 @@
 # Mini batch training 
 # %% Load Prepared Datasets
 
-from functions import *
+from bilstm import *
 # small sample for debugging
 # data_train = data_train[0:100]
 # data_test = data_test [0:100]
@@ -20,14 +20,9 @@ MAX_EPOCH = 30
 train_loader = DataLoader(dataset=data_train, batch_size=batch_size, shuffle=shuffle)
 dev_loader = DataLoader(dataset=data_dev, batch_size=batch_size, shuffle=shuffle)
 
+filename = "./trained_models/BiLSTM_ML256.tar"
+model, optimizer,loss_function,checkpoint = initialize_model(batch_size = 10)
 
-# Initialize network
-model = LSTMTagger(character_size,embedding_dim,hidden_dim, num_layers,tagset_size,batch_size)
-if(torch.cuda.is_available()):
-	print(torch.cuda.current_device())
-model = model.to(device); model.train()
-optimizer = optim.SGD(model.parameters(), learning_rate)
-loss_function = nn.NLLLoss()
 
 # %% Train Model
 filename = "./trained_models/Batch_BiLSTM_ML_E30.tar"
