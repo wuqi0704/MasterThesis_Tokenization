@@ -63,47 +63,47 @@ model_list = ['./trained_models/BiLSTM_ML256.tar']*len(LanguageList)
 file_name = 'BiLSTM_ML256_test'
 error_sentence,results = evaluation(model_list,file_name,data_test)
 
-#%% # case 2 : BiLSTM_SL
-embedding_dim=2048
-character_size = 6499
+# #%% # case 2 : BiLSTM_SL
+# embedding_dim=2048
+# character_size = 6499
 
-model, optimizer,loss_function,checkpoint = initialize_model(character_size = 6499,embedding_dim=2048)
-model_list = []
-for language in LanguageList:
-    model_list.append('./trained_models/BiLSTM_SL/BiLSTM_SL_%s.pth.tar'%language)
-file_name = 'BiLSTM_SL_test'
-error_sentence,results = evaluation(model_list,file_name,data_test)
-#%%
-
-
-#%% # case 3 : BiLSTM_GL
-embedding_dim=2048
-character_size = 6499
-
-model, optimizer,loss_function,checkpoint = initialize_model(character_size = 6499,embedding_dim=2048)
-model_list = []
-for language in LanguageList:
-    index = [language in group for group in GroupList]
-    groupname = GroupNameList[np.where(np.array(index)==True)[0][0]]
-    model_list.append('./trained_models/BiLSTM_GL/BiLSTM_GL_%s.pth.tar'%groupname)
-file_name = 'BiLSTM_GL'
-error_sentence,results = evaluation(model_list,file_name,data_test)
+# model, optimizer,loss_function,checkpoint = initialize_model(character_size = 6499,embedding_dim=2048)
+# model_list = []
+# for language in LanguageList:
+#     model_list.append('./trained_models/BiLSTM_SL/BiLSTM_SL_%s.pth.tar'%language)
+# file_name = 'BiLSTM_SL_test'
+# error_sentence,results = evaluation(model_list,file_name,data_test)
+# #%%
 
 
+# #%% # case 3 : BiLSTM_GL
+# embedding_dim=2048
+# character_size = 6499
 
-#%%
-### Word Level Evaluation 
-# case 1 : BiLSTM_CRF_CN
-from bilstm_crf import *
-model_name = "./trained_models/Batch_BiLSTM_ML.tar"
+# model, optimizer,loss_function,checkpoint = initialize_model(character_size = 6499,embedding_dim=2048)
+# model_list = []
+# for language in LanguageList:
+#     index = [language in group for group in GroupList]
+#     groupname = GroupNameList[np.where(np.array(index)==True)[0][0]]
+#     model_list.append('./trained_models/BiLSTM_GL/BiLSTM_GL_%s.pth.tar'%groupname)
+# file_name = 'BiLSTM_GL'
+# error_sentence,results = evaluation(model_list,file_name,data_test)
 
-file_name = 
-results.to_csv('./results/Batch_BiLSTM_ML.csv')
 
-#%% 
-use_CSE = False
-embedding_dim = 4096 # because using CSE 
-model, optimizer,loss_function,checkpoint = initialize_model(embedding_dim=4096)
+
+# #%%
+# ### Word Level Evaluation 
+# # case 1 : BiLSTM_CRF_CN
+# from bilstm_crf import *
+# model_name = "./trained_models/Batch_BiLSTM_ML.tar"
+
+# file_name = 
+# results.to_csv('./results/Batch_BiLSTM_ML.csv')
+
+# #%% 
+# use_CSE = False
+# embedding_dim = 4096 # because using CSE 
+# model, optimizer,loss_function,checkpoint = initialize_model(embedding_dim=4096)
 
             
 
