@@ -105,17 +105,6 @@ def prepare_batch(batch, to_ix):
     return pad_sequence(tensor_list,batch_first=False)
     # with batch_first=False, the dimension come as (len(seq)#length of longest sequence,len(batch)#batch_size)
 
-def prepare_cse(sentence,batch_size=1):
-    lm_f: LanguageModel = FlairEmbeddings('multi-forward').lm
-    lm_b: LanguageModel = FlairEmbeddings('multi-backward').lm 
-    if batch_size == 1:
-        embeds_f = lm_f.get_representation([sentence],'\n','\n')[1:-1,:,:]
-        embeds_b = lm_b.get_representation([sentence],'\n','\n')[1:-1,:,:]
-    elif batch_size >1:
-        embeds_f = lm_f.get_representation(list(sentence),'\n','\n')[1:-1,:,:]
-        embeds_b = lm_b.get_representation(list(sentence),'\n','\n')[1:-1,:,:]
-    return torch.cat((embeds_f,embeds_b),dim=2)
-
 
 import torch
 import torchvision
@@ -149,10 +138,22 @@ class LSTMTagger(nn.Module):
         # The linear layer that maps from hidden state space to tag space
         self.hidden2tag = nn.Linear(hidden_dim * 2, tagset_size)
 
+    def prepare_cse(sentence,batch_size=1):
+        lm_f: LanguageModel = self.flair_embedding('multi-forward').lm
+        lm_b: LanguageModel = self.flair_embedding('multi-backward').lm 
+        if batch_size == 1:
+            embeds_f = lm_f.get_representation([sentence],'\n','\n')[1:-1,:,:]
+            embeds_b = lm_b.get_representation([sentence],'\n','\n')[1:-1,:,:]
+        elif batch_size >1:
+            embeds_f = lm_f.get_representation(list(sentence),'\n','\n')[1:-1,:,:]
+            embeds_b = lm_b.get_representation(list(sentence),'\n','\n')[1:-1,:,:]
+        return torch.cat((embeds_f,embeds_b),dim=2)
+
     def forward(self,sentence):
         if self.batch_size > 1:
             if self.use_CSE == True:
-                embeds = sentence
+                embeds = prepare_cse(sentence,batch_size=self.batch_size).to(device)
+                # embeds = sentence
             elif self.use_CSE == False:
                 embeds = self.character_embeddings(sentence) 
 
@@ -166,7 +167,8 @@ class LSTMTagger(nn.Module):
         
         elif self.batch_size == 1:   
             if self.use_CSE == True:
-                embeds = sentence
+                # embeds = sentence
+                embeds = prepare_cse(sentence,batch_size=self.batch_size).to(device)
             elif self.use_CSE == False:
                 embeds = self.character_embeddings(sentence) 
 
@@ -216,3 +218,5 @@ def initialize_model(tagset_size = tagset_size,
     checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
     return model, optimizer,loss_function,checkpoint
 
+#%%
+model

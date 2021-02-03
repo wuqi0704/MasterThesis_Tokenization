@@ -45,7 +45,8 @@ for epoch in tqdm(range(MAX_EPOCH)):
         
         # Step 2. Get our inputs ready for the network
         if use_CSE == True: 
-            batch_in = prepare_cse(data,batch_size=batch_size).to(device=device) # shape len(longest sentence),batch_size,embedding_dim=4096
+            batch_in = data
+            # batch_in = prepare_cse(data,batch_size=batch_size).to(device=device) # shape len(longest sentence),batch_size,embedding_dim=4096
         elif use_CSE == False : 
             batch_in = prepare_batch(data,letter_to_ix).to(device=device)# shape len(longest sentence),batch_size
         
