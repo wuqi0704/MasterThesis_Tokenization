@@ -138,7 +138,7 @@ class LSTMTagger(nn.Module):
         # The linear layer that maps from hidden state space to tag space
         self.hidden2tag = nn.Linear(hidden_dim * 2, tagset_size)
 
-    def prepare_cse(sentence,batch_size=1):
+    def prepare_cse(self,sentence,batch_size=1):
         lm_f: LanguageModel = self.flair_embedding('multi-forward').lm
         lm_b: LanguageModel = self.flair_embedding('multi-backward').lm 
         if batch_size == 1:
@@ -152,7 +152,7 @@ class LSTMTagger(nn.Module):
     def forward(self,sentence):
         if self.batch_size > 1:
             if self.use_CSE == True:
-                embeds = prepare_cse(sentence,batch_size=self.batch_size).to(device)
+                embeds = self.prepare_cse(sentence,batch_size=self.batch_size).to(device)
                 # embeds = sentence
             elif self.use_CSE == False:
                 embeds = self.character_embeddings(sentence) 
