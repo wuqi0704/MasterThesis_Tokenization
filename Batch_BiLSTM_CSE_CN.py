@@ -44,21 +44,20 @@ for epoch in tqdm(range(MAX_EPOCH)):
         model.zero_grad()
         
         # Step 2. Get our inputs ready for the network
-        if use_CSE == True: 
-            batch_in = data
             # batch_in = prepare_cse(data,batch_size=batch_size).to(device=device) # shape len(longest sentence),batch_size,embedding_dim=4096
-        elif use_CSE == False : 
-            batch_in = prepare_batch(data,letter_to_ix).to(device=device)# shape len(longest sentence),batch_size
+        batch_in = prepare_batch(data,letter_to_ix).to(device=device)# shape len(longest sentence),batch_size
         
         targets = prepare_batch(tags,tag_to_ix).to(device=device)
         # Step 3. Run our forward pass.
         length_list = []
-        if batch_in.shape[1] != batch_size:
+        if batch_in.shape[1] != batch_size: # sometimes the last piece of batch has less data than batch_size
             continue 
         for sentence in data: 
             length_list.append(len(sentence))
+        
+        if use_CSE == True: tag_scores = model(data)
+        elif use_CSE == False: tag_scores = model(batch_in)
 
-        tag_scores = model(batch_in)
         tag_scores = pack_padded_sequence(tag_scores,length_list,enforce_sorted=False).data
         targets = pack_padded_sequence(targets,length_list,enforce_sorted=False).data
         loss = loss_function(tag_scores,targets) 
