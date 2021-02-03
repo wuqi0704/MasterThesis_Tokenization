@@ -218,5 +218,3 @@ def initialize_model(tagset_size = tagset_size,
     checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
     return model, optimizer,loss_function,checkpoint
 
-#%%
-model
