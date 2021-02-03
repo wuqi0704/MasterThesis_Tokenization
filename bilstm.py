@@ -145,6 +145,7 @@ class LSTMTagger(nn.Module):
 
         self.character_embeddings = nn.Embedding(character_size, embedding_dim) 
         self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers, batch_first=False, bidirectional=True)
+        self.flair_embedding = FlairEmbeddings
         # The linear layer that maps from hidden state space to tag space
         self.hidden2tag = nn.Linear(hidden_dim * 2, tagset_size)
 
@@ -214,6 +215,4 @@ def initialize_model(tagset_size = tagset_size,
     loss_function = nn.NLLLoss()
     checkpoint = {'state_dict' : model.state_dict(), 'optimizer': optimizer.state_dict()}
     return model, optimizer,loss_function,checkpoint
-
-
 

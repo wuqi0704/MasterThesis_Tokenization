@@ -128,7 +128,7 @@ for epoch in tqdm(range(MAX_EPOCH)):
 # embeds.shape
 
 #%% without CSE
-use_CSE = False
+use_CSE = True
 embedding_dim = 4096 # because using CSE 
 batch_size = 10
 
