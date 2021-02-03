@@ -168,7 +168,7 @@ class LSTMTagger(nn.Module):
         elif self.batch_size == 1:   
             if self.use_CSE == True:
                 # embeds = sentence
-                embeds = prepare_cse(sentence,batch_size=self.batch_size).to(device)
+                embeds = self.prepare_cse(sentence,batch_size=self.batch_size).to(device)
             elif self.use_CSE == False:
                 embeds = self.character_embeddings(sentence) 
 
