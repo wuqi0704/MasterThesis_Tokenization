@@ -11,22 +11,6 @@ with open('./data/%s_Train.pickle'%language, 'rb') as f1:
 with open('./data/%s_Dev.pickle'%language, 'rb') as f3:
     data_dev = pickle.load(f3)
 
-# sentence = data
-# embeds = prepare_cse(sentence,batch_size=batch_size)
-# embeds = embeds.to(device=device)
-# character_embeddings = nn.Embedding(character_size, embedding_dim)
-
-# batch_in = prepare_batch(sentence,letter_to_ix)
-
-# # %%
-# lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers, batch_first=False, bidirectional=True)
-
-# #%%
-# x = embeds
-# h0 = torch.zeros(num_layers * 2, batch_size, hidden_dim).to(device)
-# c0 = torch.zeros(num_layers * 2, batch_size, hidden_dim).to(device)
-# out, _ = lstm(x, (h0, c0))
-
 use_CSE = True
 embedding_dim = 4096 # because using CSE 
 batch_size = 10
@@ -63,7 +47,7 @@ for epoch in tqdm(range(MAX_EPOCH)):
         batch_in = prepare_batch(data,letter_to_ix).to(device=device)# shape len(longest sentence),batch_size
         targets = prepare_batch(tags,tag_to_ix).to(device=device)
         
-        # Step 3. Run our forward pass.
+        
         length_list = []
         if batch_in.shape[1] != batch_size: continue 
         
@@ -71,7 +55,8 @@ for epoch in tqdm(range(MAX_EPOCH)):
         
         if use_CSE == True: tag_scores = model(data)
         elif use_CSE == False: tag_scores = model(batch_in)
-        
+
+        # Step 3. Run our forward pass.
         tag_scores = pack_padded_sequence(tag_scores,length_list,enforce_sorted=False).data
         targets    = pack_padded_sequence(targets,length_list,enforce_sorted=False).data
         loss = loss_function(tag_scores,targets) 
@@ -88,9 +73,8 @@ for epoch in tqdm(range(MAX_EPOCH)):
         batch_in = prepare_batch(data,letter_to_ix).to(device=device)
 
         targets = prepare_batch(tags,tag_to_ix).to(device=device)
-        length_list = []
-        if batch_in.shape[1] != batch_size:
-            continue 
+        length_list = [] # get the sentence length for each sentence in batch 
+        if batch_in.shape[1] != batch_size: continue # sometimes the last batch has nr. of sentence less than batch_size
         for sentence in data: 
             length_list.append(len(sentence))
         
