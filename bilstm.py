@@ -107,11 +107,9 @@ def prepare_batch(batch, to_ix):
 
 
 import torch
-import torchvision
 import torch.nn as nn  
 import torch.optim as optim  
 import torch.nn.functional as F  
-from torch.utils.data import DataLoader
 from flair.embeddings import FlairEmbeddings
 from flair.models import LanguageModel
 
