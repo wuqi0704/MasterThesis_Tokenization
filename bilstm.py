@@ -87,7 +87,7 @@ def find_token(sentence_str):
     return token
 
 def save_checkpoint(state, filename):
-    print("=> Saving checkpoint")
+    print("=> Saving checkpoint to: %s"%filename)
     torch.save(state, filename)
     
 def load_checkpoint(checkpoint, model, optimizer):
@@ -112,6 +112,7 @@ import torch.optim as optim
 import torch.nn.functional as F  
 from flair.embeddings import FlairEmbeddings
 from flair.models import LanguageModel
+from torch.utils.data import DataLoader
 
 class LSTMTagger(nn.Module):
 
