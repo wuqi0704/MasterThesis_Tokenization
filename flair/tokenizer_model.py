@@ -26,6 +26,19 @@ import torch.optim as optim
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(1)
     
+class LabeledString(DataPoint):
+
+    def __init__(self, string: str):
+        super().__init__()
+        self.string = string
+
+    def __str__(self) -> str:
+
+        # add Sentence labels to output if they exist
+        sentence_labels = f"  − Labels: {self.annotation_layers}" if self.annotation_layers != {} else ""
+
+        return f'String: "{self.string}" {sentence_labels}'
+        
 def argmax(vec):
     # return the argmax as a python int
     _, idx = torch.max(vec, 1)

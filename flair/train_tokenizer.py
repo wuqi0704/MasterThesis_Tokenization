@@ -1,9 +1,10 @@
 #%%
-from flair.data import Corpus, LabeledString
+from flair.data import Corpus
 
 from flair.datasets import SentenceDataset
 from flair.embeddings import token
 from tokenizer_model import FlairTokenizer
+from tokenizer_model import LabeledString
 
 # only one language for now
 LanguageList = [
