@@ -1,4 +1,4 @@
-#%%
+#%% BiLSTM model ML 
 from flair.data import Corpus
 
 from flair.datasets import SentenceDataset
@@ -6,9 +6,22 @@ from flair.embeddings import token
 from tokenizer_model import FlairTokenizer
 from tokenizer_model import LabeledString
 
-# only one language for now
+
 LanguageList = [
-    'ENGLISH'
+    'HEBREW',
+    'ARABIC',
+    'PORTUGUESE',
+    'ITALIAN',
+    'FRENCH',
+    'SPANISH',
+    'GERMAN',
+    'ENGLISH',
+    'RUSSIAN',
+    'FINNISH',
+    'VIETNAMESE',
+    'KOREAN',
+    'CHINESE',
+    'JAPANESE'
 ]
 import pickle
 
@@ -30,7 +43,7 @@ for language in LanguageList:
 #%%
 # 2. make a Corpus object
 corpus: Corpus = Corpus(SentenceDataset(data_train), SentenceDataset(data_test), SentenceDataset(data_dev))
-corpus = corpus.downsample(0.01)
+# corpus = corpus.downsample(0.01)
 # 3. make the letter dictionary from the corpus
 letter_to_ix = {}
 letter_to_ix[''] = 0  # need this for padding
@@ -44,21 +57,22 @@ print('functions.py : Nr. of distinguish character: ', len(letter_to_ix.keys()))
 # 4. initialize tokenizer
 tokenizer: FlairTokenizer = FlairTokenizer(
     letter_to_ix=letter_to_ix,
-    embedding_dim=4096,
+    embedding_dim=256,
     hidden_dim=256,
     num_layers=1,
-    use_CSE=False
+    use_CSE=False,
+    use_CRF=False
 )
 
 # 5. initialize trainer
 from flair.trainers import ModelTrainer
 
 trainer: ModelTrainer = ModelTrainer(tokenizer, corpus)
-#%%
+
 # 6. train
 trainer.train(
-    "resources/taggers/example-tokenizer",
+    "resources/taggers/bilstm256",
     learning_rate=0.1,
-    mini_batch_size=1,
-    max_epochs=5,
+    mini_batch_size=32,
+    max_epochs=10,
 )
