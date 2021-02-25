@@ -38,7 +38,7 @@ class LabeledString(DataPoint):
         sentence_labels = f"  − Labels: {self.annotation_layers}" if self.annotation_layers != {} else ""
 
         return f'String: "{self.string}" {sentence_labels}'
-        
+
 def argmax(vec):
     # return the argmax as a python int
     _, idx = torch.max(vec, 1)
@@ -346,7 +346,7 @@ class FlairTokenizer(flair.nn.Model):
         freshly recomputed, 'cpu' means all embeddings are stored on CPU, or 'gpu' means all embeddings are stored on GPU
         :return: Returns a Tuple consisting of a Result object and a loss float value
         """
-        from flair.data import LabeledString
+        # from flair.data import LabeledString
         if isinstance(sentences, LabeledString):
             sentences = [sentences]
         # if not isinstance(sentences, Dataset):
