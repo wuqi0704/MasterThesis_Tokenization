@@ -57,7 +57,7 @@ print('functions.py : Nr. of distinguish character: ', len(letter_to_ix.keys()))
 # 4. initialize tokenizer
 tokenizer: FlairTokenizer = FlairTokenizer(
     letter_to_ix=letter_to_ix,
-    embedding_dim=256,
+    embedding_dim=4096,
     hidden_dim=256,
     num_layers=1,
     use_CSE=False,
@@ -71,7 +71,7 @@ trainer: ModelTrainer = ModelTrainer(tokenizer, corpus)
 
 # 6. train
 trainer.train(
-    "resources/taggers/bilstm256",
+    "resources/taggers/ML_bilstm4096",
     learning_rate=0.1,
     mini_batch_size=32,
     max_epochs=10,
