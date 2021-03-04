@@ -54,7 +54,7 @@ def log_sum_exp(vec):
 class FlairTokenizer(flair.nn.Model):
 
     def __init__(self,
-                 letter_to_ix, # character dictionary 
+                 letter_to_ix={}, # character dictionary 
                  embedding_dim=4096,
                  hidden_dim=256,
                  num_layers=1,

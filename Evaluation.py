@@ -1,12 +1,19 @@
-#!/usr/bin/env python
-# coding: utf-8
+#%% define function to save and load
+def save_checkpoint(state, filename):
+    print("=> Saving checkpoint to: %s"%filename)
+    torch.save(state, filename)
+    
+def load_checkpoint(checkpoint, model, optimizer):
+    print("=> Loading checkpoint")
+    model.load_state_dict(checkpoint['state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer'])
 
 # # Evaluation 
 #%% # load test datasets and calcultae evaluation metrics 
 from bilstm import LanguageList; import pickle
 data_test={}
 for language in LanguageList:
-    with open('./data/%s_Test.pickle'%language, 'rb') as f2:
+    with open('./flair/resources/%s_Test.pickle'%language, 'rb') as f2:
         test = pickle.load(f2) 
     data_test[language]  = test 
 
@@ -57,10 +64,13 @@ def evaluation(model_list,file_name,data_test):
 
 #%% ### Word Level Evaluation 
 # case 1 : BiLSTM_ML
-from bilstm import *
-model, optimizer,loss_function,checkpoint = initialize_model()
-model_list = ['./trained_models/BiLSTM_ML256.tar']*len(LanguageList)
-file_name = 'BiLSTM_ML256_test'
+# from bilstm import *
+from flair.tokenizer_model import FlairTokenizer
+#%%
+# model, optimizer,loss_function,checkpoint = initialize_model()
+# model_list = ['./trained_models/BiLSTM_ML256.tar']*len(LanguageList)
+model_list = ['./flair/resources/taggers/MLbilstm256/best-model.pt']*len(LanguageList)
+file_name = 'MLbilstm256'
 error_sentence,results = evaluation(model_list,file_name,data_test)
 
 # #%% # case 2 : BiLSTM_SL
@@ -111,3 +121,5 @@ error_sentence,results = evaluation(model_list,file_name,data_test)
 
 
 
+
+# %%
