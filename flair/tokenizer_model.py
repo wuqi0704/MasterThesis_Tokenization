@@ -274,13 +274,14 @@ class FlairTokenizer(flair.nn.Model):
                 sent_string.append((sentence.string))
                 tags.append(sentence.get_labels('tokenization')[0]._value)
             batch_size=len(data_points)
-            if batch_size ==1:
+            if batch_size == 1: # if only one element, then get rid of list. 
                 sent_string = sent_string[0]
                 tags = tags[0]
-        except: 
+        except: # for batch_size = 1
             sent_string = data_points.string
             tags = data_points.get_labels('tokenization')[0]._value
             batch_size = 1
+
         targets = self.prepare_batch(tags, self.tag_to_ix).squeeze().to(device=device)
         if self.use_CSE == True:
             embeds = self.prepare_cse(sent_string, batch_size=batch_size).to(device)
@@ -307,8 +308,8 @@ class FlairTokenizer(flair.nn.Model):
             tag_scores = pack_padded_sequence(tag_scores, length_list, enforce_sorted=False).data
             targets = pack_padded_sequence(targets, length_list, enforce_sorted=False).data
             tag_space = pack_padded_sequence(tag_space, length_list, enforce_sorted=False).data
-              
 
+ 
         if self.use_CRF == False:
             tag_predict = self.prediction_str(tag_scores)
             loss = self.loss_function(tag_scores, targets)
@@ -323,6 +324,7 @@ class FlairTokenizer(flair.nn.Model):
             # if foreval : return loss,packed_sent,packed_tags,tag_predict
             if foreval : return loss,packed_sent,packed_tags,lstm_feats
             else: return loss
+        
 
         # TODO: what is currently your forward() goes here, followed by the loss computation
         # Since the DataPoint brings its own label, you can compute the loss here
@@ -366,6 +368,7 @@ class FlairTokenizer(flair.nn.Model):
                 reference = self.find_token((packed_sent, packed_tags))
                 candidate = self.find_token((packed_sent, tag_predict))
                 inter = [c for c in candidate if c in reference]
+
                 if len(candidate) != 0:
                     R = len(inter) / len(reference)
                     P = len(inter) / len(candidate)
