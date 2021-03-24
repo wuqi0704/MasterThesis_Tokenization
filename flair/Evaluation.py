@@ -48,7 +48,7 @@ for language in LanguageList:
 
 import torch 
 model_name = '1_h512'
-state = torch.load('/Users/qier/Downloads/ML_Tagger/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
+state = torch.load('./resources/taggers/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
 from tokenizer_model import FlairTokenizer
 tokenizer = FlairTokenizer() 
 model = tokenizer._init_model_with_state_dict(state)
@@ -107,152 +107,73 @@ test_results, test_loss = model.evaluate(
     mini_batch_size=2,
     num_workers=8,
 )
+
+test_results, test_loss = model.evaluate(
+    # self.corpus.test,
+    data_test['CHINESE'][0:2],
+    mini_batch_size=1,
+    num_workers=8,
+)
 print(test_results.detailed_results)
 
 #%%
-from flair.datasets import DataLoader
-from torch.nn.utils.rnn import pack_padded_sequence
-import torch
-import torch.nn.functional as F
-test1 = [data_test['CHINESE'][1],data_test['CHINESE'][1]]
-test2 = data_test['CHINESE'][0:2]
-data_loader = DataLoader(test1, batch_size=2, num_workers=8)
-inter = []
-for batch in data_loader:
-    data_points = batch
-    try: 
-        sent_string,tags = [],[]
-        for sentence in data_points: 
-            sent_string.append((sentence.string))
-            tags.append(sentence.get_labels('tokenization')[0]._value)
-        batch_size=len(data_points)
-        if batch_size == 1: # if only one element, then get rid of list. 
-            sent_string = sent_string[0]
-            tags = tags[0]
-    except:
-        sent_string = data_points.string
-        tags = data_points.get_labels('tokenization')[0]._value
-        batch_size = 1
+# from flair.datasets import DataLoader
+# from torch.nn.utils.rnn import pack_padded_sequence
+# import torch
+# import torch.nn.functional as F
+# test1 = [data_test['CHINESE'][1],data_test['CHINESE'][1]]
+# test2 = data_test['CHINESE'][0:2]
 
-    targets = model.prepare_batch(tags, model.tag_to_ix).squeeze()
+# data_loader = DataLoader(test1, batch_size=2, num_workers=8)
+# inter = []
+# for batch in data_loader:
+#     data_points = batch
+#     try: 
+#         sent_string,tags = [],[]
+#         for sentence in data_points: 
+#             sent_string.append((sentence.string))
+#             tags.append(sentence.get_labels('tokenization')[0]._value)
+#         batch_size=len(data_points)
+#         if batch_size == 1: # if only one element, then get rid of list. 
+#             sent_string = sent_string[0]
+#             tags = tags[0]
+#     except:
+#         sent_string = data_points.string
+#         tags = data_points.get_labels('tokenization')[0]._value
+#         batch_size = 1
 
-    embeds = model.prepare_batch(sent_string, model.letter_to_ix)
-    embeds = model.character_embeddings(embeds)
+#     targets = model.prepare_batch(tags, model.tag_to_ix).squeeze()
+
+#     embeds = model.prepare_batch(sent_string, model.letter_to_ix)
+#     embeds = model.character_embeddings(embeds)
         
-    h0 = torch.zeros(model.num_layers * 2, embeds.shape[1], model.hidden_dim)
-    c0 = torch.zeros(model.num_layers * 2, embeds.shape[1], model.hidden_dim)
-    out, _ = model.lstm(embeds, (h0, c0))
-    tag_space = model.hidden2tag(out.view(embeds.shape[0], embeds.shape[1], -1))
-    tag_scores = F.log_softmax(tag_space, dim=2).squeeze()  # dim = (len(data_points),batch,len(tag))
-    if (batch_size == 1):
-        packed_sent,packed_tags = sent_string,tags
-    elif (batch_size > 1) : # if the input is more than one datapoint
-        length_list = []
-        for sentence in data_points: 
-            length_list.append(len(sentence.string))
+#     h0 = torch.zeros(model.num_layers * 2, embeds.shape[1], model.hidden_dim)
+#     c0 = torch.zeros(model.num_layers * 2, embeds.shape[1], model.hidden_dim)
+#     out, _ = model.lstm(embeds, (h0, c0))
+#     tag_space = model.hidden2tag(out.view(embeds.shape[0], embeds.shape[1], -1))
+#     tag_scores = F.log_softmax(tag_space, dim=2).squeeze()  # dim = (len(data_points),batch,len(tag))
+#     if (batch_size == 1):
+#         packed_sent,packed_tags = sent_string,tags
+#     elif (batch_size > 1) : # if the input is more than one datapoint
+#         length_list = []
+#         for sentence in data_points: 
+#             length_list.append(len(sentence.string))
         
-        packed_sent,packed_tags = '',''
-        for sent in sent_string: packed_sent += sent 
-        for tag in tags: packed_tags += tag
+#         packed_sent,packed_tags = '',''
+#         for sent in sent_string: packed_sent += sent 
+#         for tag in tags: packed_tags += tag
 
-        print(self.prediction_str(tag_scores))
-        tag_scores = pack_padded_sequence(tag_scores, length_list, enforce_sorted=False).data#FIXME
-        targets = pack_padded_sequence(targets, length_list, enforce_sorted=False).data
-        tag_space = pack_padded_sequence(tag_space, length_list, enforce_sorted=False).data
+#         print(self.prediction_str(tag_scores))
+#         tag_scores = pack_padded_sequence(tag_scores, length_list, enforce_sorted=False).data#FIXME
+#         targets = pack_padded_sequence(targets, length_list, enforce_sorted=False).data
+#         tag_space = pack_padded_sequence(tag_space, length_list, enforce_sorted=False).data
 
-    tag_predict = model.prediction_str(tag_scores)
-    loss = model.loss_function(tag_scores, targets)
+#     tag_predict = model.prediction_str(tag_scores)
+#     loss = model.loss_function(tag_scores, targets)
 
-    reference = model.find_token((packed_sent, packed_tags))
-    candidate = model.find_token((packed_sent, tag_predict))
-    inter.append( [c for c in candidate if c in reference])
+#     reference = model.find_token((packed_sent, packed_tags))
+#     candidate = model.find_token((packed_sent, tag_predict))
+#     inter.append( [c for c in candidate if c in reference])
 
-# %%
-inter
-# %%
-tag_predict
-# %%
-tag_scores
-# %%
-length_list
 
-#%%
-targets
 
-#%%
-from torch.nn.utils.rnn import pad_sequence
-def prepare_batch(data_points_str, to_ix):
-    tensor_list = []
-    for seq in data_points_str:
-        idxs = [to_ix[w] for w in seq]
-        tensor = torch.tensor(idxs, dtype=torch.long, device=flair.device)
-        tensor_list.append(tensor)
-    batch_tensor = pad_sequence(tensor_list, batch_first=False).squeeze()
-    if len(batch_tensor.shape)==1: # if there is only one datapoint, in another word batch_size=1
-        return batch_tensor.view(-1,1) # add batch_size = 1 as dimension
-    else: return batch_tensor
-# %%
-import flair
-prepare_batch(tags,model.tag_to_ix)
-#%%
-pack_padded_sequence(targets, length_list, enforce_sorted=False).data
-# %%
-length_list
-# %% corrected version
-
-from flair.datasets import DataLoader
-from torch.nn.utils.rnn import pack_padded_sequence
-import torch
-import torch.nn.functional as F
-test1 = [data_test['CHINESE'][1],data_test['CHINESE'][1]]
-test2 = data_test['CHINESE'][0:2]
-data_loader = DataLoader(test1, batch_size=2, num_workers=8)
-inter = []
-for batch in data_loader:
-    data_points = batch
-    try: 
-        sent_string,tags = [],[]
-        for sentence in data_points: 
-            sent_string.append((sentence.string))
-            tags.append(sentence.get_labels('tokenization')[0]._value)
-        batch_size=len(data_points)
-        if batch_size == 1: # if only one element, then get rid of list. 
-            sent_string = sent_string[0]
-            tags = tags[0]
-    except:
-        sent_string = data_points.string
-        tags = data_points.get_labels('tokenization')[0]._value
-        batch_size = 1
-
-    targets = model.prepare_batch(tags, model.tag_to_ix).squeeze() # padded_tags
-    embeds = model.prepare_batch(sent_string, model.letter_to_ix) # padded_sent
-    embeds = model.character_embeddings(embeds)
-        
-    embeds = pack_padded_sequence()
-    h0 = torch.zeros(model.num_layers * 2, embeds.shape[1], model.hidden_dim)
-    c0 = torch.zeros(model.num_layers * 2, embeds.shape[1], model.hidden_dim)
-    out, _ = model.lstm(embeds, (h0, c0))
-    tag_space = model.hidden2tag(out.view(embeds.shape[0], embeds.shape[1], -1))
-    tag_scores = F.log_softmax(tag_space, dim=2).squeeze()  # dim = (len(data_points),batch,len(tag))
-    if (batch_size == 1):
-        packed_sent,packed_tags = sent_string,tags
-    elif (batch_size > 1) : # if the input is more than one datapoint
-        length_list = []
-        for sentence in data_points: 
-            length_list.append(len(sentence.string))
-        
-        packed_sent,packed_tags = '',''
-        for sent in sent_string: packed_sent += sent 
-        for tag in tags: packed_tags += tag
-
-        print(self.prediction_str(tag_scores))
-        tag_scores = pack_padded_sequence(tag_scores, length_list, enforce_sorted=False).data#FIXME
-        targets = pack_padded_sequence(targets, length_list, enforce_sorted=False).data
-        tag_space = pack_padded_sequence(tag_space, length_list, enforce_sorted=False).data
-
-    tag_predict = model.prediction_str(tag_scores)
-    loss = model.loss_function(tag_scores, targets)
-
-    reference = model.find_token((packed_sent, packed_tags))
-    candidate = model.find_token((packed_sent, tag_predict))
-    inter.append( [c for c in candidate if c in reference])
