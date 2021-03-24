@@ -3,8 +3,8 @@
 # from tokenizer_model import FlairTokenizer
 # tokenizer: FlairTokenizer = FlairTokenizer()
 # 1. load your data and convert to list of LabeledString
-import sys
-sys.path.insert(1, '/Users/qier/opt/anaconda3/lib/python3.7/site-packages/')
+# import sys
+# sys.path.insert(1, '/Users/qier/opt/anaconda3/lib/python3.7/site-packages/')
 
 from flair.data import Corpus
 
