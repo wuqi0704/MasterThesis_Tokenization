@@ -107,6 +107,7 @@ test_results, test_loss = model.evaluate(
     mini_batch_size=2,
     num_workers=8,
 )
+print(test_results.detailed_results)
 
 test_results, test_loss = model.evaluate(
     # self.corpus.test,
