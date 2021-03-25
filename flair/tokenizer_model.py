@@ -25,7 +25,8 @@ import torch.optim as optim
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(1)
-    
+
+
 class LabeledString(DataPoint):
 
     def __init__(self, string: str):
@@ -33,11 +34,17 @@ class LabeledString(DataPoint):
         self.string = string
 
     def __str__(self) -> str:
-
         # add Sentence labels to output if they exist
         sentence_labels = f"  − Labels: {self.annotation_layers}" if self.annotation_layers != {} else ""
 
         return f'String: "{self.string}" {sentence_labels}'
+
+    def __repr__(self) -> str:
+        # add Sentence labels to output if they exist
+        sentence_labels = f"  − Labels: {self.annotation_layers}" if self.annotation_layers != {} else ""
+
+        return f'String: "{self.string}" {sentence_labels}'
+
 
 def argmax(vec):
     # return the argmax as a python int
@@ -45,23 +52,26 @@ def argmax(vec):
     return idx.item()
 
     # Compute log sum exp in a numerically stable way for the forward algorithm
+
+
 def log_sum_exp(vec):
     max_score = vec[0, argmax(vec)]
     max_score_broadcast = max_score.view(1, -1).expand(1, vec.size()[1])
     return max_score + \
-        torch.log(torch.sum(torch.exp(vec - max_score_broadcast)))
+           torch.log(torch.sum(torch.exp(vec - max_score_broadcast)))
+
 
 class FlairTokenizer(flair.nn.Model):
 
     def __init__(self,
-                 letter_to_ix={}, # character dictionary 
+                 letter_to_ix={},  # character dictionary
                  embedding_dim=4096,
                  hidden_dim=256,
                  num_layers=1,
                  use_CSE=False,
                  tag_to_ix={'B': 0, 'I': 1, 'E': 2, 'S': 3, 'X': 4},
                  learning_rate=0.1,
-                 use_CRF = False
+                 use_CRF=False
                  ):
 
         super(FlairTokenizer, self).__init__()
@@ -76,39 +86,40 @@ class FlairTokenizer(flair.nn.Model):
         self.learning_rate = learning_rate
         self.use_CRF = use_CRF
 
-        if self.use_CSE == False:
+        if not self.use_CSE:
             self.character_embeddings = nn.Embedding(len(letter_to_ix), embedding_dim)
             self.embeddings = self.character_embeddings
-        elif self.use_CSE == True:
+
+        elif self.use_CSE:
             self.flair_embedding = FlairEmbeddings
             self.lm_f: LanguageModel = self.flair_embedding('multi-forward').lm
             self.lm_b: LanguageModel = self.flair_embedding('multi-backward').lm
             self.embeddings = self.flair_embedding
 
-        if self.use_CRF == True:
+        if self.use_CRF:
             self.START_TAG = '<START>'
             self.STOP_TAG = '<STOP>'
-            self.tag_to_ix = {"B": 0, "I": 1, "E": 2,'S':3, 'X':4, self.START_TAG: 5, self.STOP_TAG: 6}
+            self.tag_to_ix = {"B": 0, "I": 1, "E": 2, 'S': 3, 'X': 4, self.START_TAG: 5, self.STOP_TAG: 6}
             self.ix_to_tag = {y: x for x, y in self.tag_to_ix.items()}
             self.tagset_size = len(self.tag_to_ix)
             # Matrix of transition parameters.  Entry i,j is the score of
-             # transitioning *to* i *from* j.
+            # transitioning *to* i *from* j.
             self.transitions = nn.Parameter(
-                torch.randn(len(self.tag_to_ix), len(self.tag_to_ix)))
+                torch.randn(len(self.tag_to_ix), len(self.tag_to_ix), device=flair.device))
             # These two statements enforce the constraint that we never transfer
             # to the start tag and we never transfer from the stop tag
             self.transitions.data[self.tag_to_ix[self.START_TAG], :] = -10000
             self.transitions.data[:, self.tag_to_ix[self.STOP_TAG]] = -10000
-        
+
         self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers, batch_first=False, bidirectional=True)
         self.hidden2tag = nn.Linear(hidden_dim * 2, len(self.tag_to_ix))
         self.loss_function = nn.NLLLoss()
 
         self.to(flair.device)
 
-    def _forward_alg(self, feats): # feats = the output: lstm_features
+    def _forward_alg(self, feats):  # feats = the output: lstm_features
         # Do the forward algorithm to compute the partition function
-        init_alphas = torch.full((1, self.tagset_size), -10000.)
+        init_alphas = torch.full((1, self.tagset_size), -10000., device=flair.device)
         # START_TAG has all of the score.
         init_alphas[0][self.tag_to_ix[self.START_TAG]] = 0.
 
@@ -140,11 +151,11 @@ class FlairTokenizer(flair.nn.Model):
     @abstractmethod
     def _score_sentence(self, feats, tags):
         # Gives the score of a provided tag sequence
-        score = torch.zeros(1)
-        tags = torch.cat([torch.tensor([self.tag_to_ix[self.START_TAG]], dtype=torch.long), tags])
+        score = torch.zeros(1, device=flair.device)
+        tags = torch.cat([torch.tensor([self.tag_to_ix[self.START_TAG]], dtype=torch.long, device=flair.device), tags])
         for i, feat in enumerate(feats):
             score = score + \
-                self.transitions[tags[i + 1], tags[i]] + feat[tags[i + 1]]
+                    self.transitions[tags[i + 1], tags[i]] + feat[tags[i + 1]]
         score = score + self.transitions[self.tag_to_ix[self.STOP_TAG], tags[-1]]
         return score
 
@@ -152,7 +163,7 @@ class FlairTokenizer(flair.nn.Model):
         backpointers = []
 
         # Initialize the viterbi variables in log space
-        init_vvars = torch.full((1, self.tagset_size), -10000.)
+        init_vvars = torch.full((1, self.tagset_size), -10000., device=flair.device)
         init_vvars[0][self.tag_to_ix[self.START_TAG]] = 0
 
         # forward_var at step i holds the viterbi variables for step i-1
@@ -192,37 +203,37 @@ class FlairTokenizer(flair.nn.Model):
         best_path.reverse()
         return path_score, best_path
 
-    @abstractmethod 
+    @abstractmethod
     # def neg_log_likelihood(self, sentence, tags):
-    def neg_log_likelihood(self, feats, tags): # loss = self.neg_log_likelihood(lstm_feats,targets)
+    def neg_log_likelihood(self, feats, tags):  # loss = self.neg_log_likelihood(lstm_feats,targets)
         # feats = self.forward_loss(sentence)
-        forward_score = self._forward_alg(feats) 
+        forward_score = self._forward_alg(feats)
         gold_score = self._score_sentence(feats, tags)
-        return forward_score - gold_score      
+        return forward_score - gold_score
 
     def forward(self, data_points):  # dont confuse this with _forward_alg above.
         # Get the emission scores from the BiLSTM
-        loss,packed_sent,packed_tags,lstm_feats = self.forward_loss(data_points,foreval=True)
+        loss, packed_sent, packed_tags, lstm_feats = self.forward_loss(data_points, foreval=True)
         # Find the best path, given the features.
         score, tag_seq = self._viterbi_decode(lstm_feats)
         out_list = [self.ix_to_tag[int(o)] for o in tag_seq]
         tag_seq_str = ''
         for o in out_list:
-            tag_seq_str += o 
+            tag_seq_str += o
         return tag_seq_str
 
     def prepare_cse(self, sentence, batch_size=1):
-        if (batch_size == 1) & (not isinstance(sentence,list)):
+        if (batch_size == 1) & (not isinstance(sentence, list)):
             embeds_f = self.lm_f.get_representation([sentence], '\n', '\n')[1:-1, :, :]
             embeds_b = self.lm_b.get_representation([sentence], '\n', '\n')[1:-1, :, :]
-        elif (batch_size == 1) & (isinstance(sentence,list)):
+        elif (batch_size == 1) & (isinstance(sentence, list)):
             embeds_f = self.lm_f.get_representation(sentence, '\n', '\n')[1:-1, :, :]
             embeds_b = self.lm_b.get_representation(sentence, '\n', '\n')[1:-1, :, :]
-        else :
+        else:
             embeds_f = self.lm_f.get_representation(list(sentence), '\n', '\n')[1:-1, :, :]
             embeds_b = self.lm_b.get_representation(list(sentence), '\n', '\n')[1:-1, :, :]
         return torch.cat((embeds_f, embeds_b), dim=2)
-    
+
     @staticmethod
     def prepare_batch(data_points_str, to_ix):
         tensor_list = []
@@ -231,9 +242,10 @@ class FlairTokenizer(flair.nn.Model):
             tensor = torch.tensor(idxs, dtype=torch.long, device=flair.device)
             tensor_list.append(tensor)
         batch_tensor = pad_sequence(tensor_list, batch_first=False).squeeze()
-        if len(batch_tensor.shape)==1: # if there is only one datapoint, in another word batch_size=1
-            return batch_tensor.view(-1,1) # add batch_size = 1 as dimension
-        else: return batch_tensor
+        if len(batch_tensor.shape) == 1:  # if there is only one datapoint, in another word batch_size=1
+            return batch_tensor.view(-1, 1)  # add batch_size = 1 as dimension
+        else:
+            return batch_tensor
 
     @staticmethod
     def find_token(sentence_str):
@@ -253,7 +265,7 @@ class FlairTokenizer(flair.nn.Model):
                 token.append(word)
                 word = ''
         return token
-    
+
     def prediction_str(self, input):
         ix_to_tag = {y: x for x, y in self.tag_to_ix.items()}
         output = [torch.argmax(i) for i in input]
@@ -264,71 +276,74 @@ class FlairTokenizer(flair.nn.Model):
 
     @abstractmethod
     def forward_loss(
-            self, data_points: Union[List[DataPoint], DataPoint],
-            foreval = False,
+            self,
+            data_points: Union[List[DataPoint], DataPoint],
+            foreval=False,
     ) -> torch.tensor:
+
         """Performs a forward pass and returns a loss tensor for backpropagation. Implement this to enable training."""
-        try: # if (self.batch_size > 1)  
-            sent_string,tags = [],[]
-            for sentence in data_points: 
+        try:  # if (self.batch_size > 1)
+            sent_string, tags = [], []
+            for sentence in data_points:
                 sent_string.append((sentence.string))
-                tags.append(sentence.get_labels('tokenization')[0]._value)
-            batch_size=len(data_points)
-            if batch_size == 1: # if only one element, then get rid of list. 
+                tags.append(sentence.get_labels('tokenization')[0].value)
+            batch_size = len(data_points)
+            if batch_size == 1:  # if only one element, then get rid of list.
                 sent_string = sent_string[0]
                 tags = tags[0]
-        except: # for batch_size = 1
+        except:  # for batch_size = 1
             sent_string = data_points.string
-            tags = data_points.get_labels('tokenization')[0]._value
+            tags = data_points.get_labels('tokenization')[0].value
             batch_size = 1
 
-        targets = self.prepare_batch(tags, self.tag_to_ix).squeeze().to(device=device)
-        if self.use_CSE == True:
-            embeds = self.prepare_cse(sent_string, batch_size=batch_size).to(device)
-        elif self.use_CSE == False:
+        targets = self.prepare_batch(tags, self.tag_to_ix).squeeze().to(flair.device)
+        if self.use_CSE:
+            embeds = self.prepare_cse(sent_string, batch_size=batch_size).to(flair.device)
+        else:
             embeds = self.prepare_batch(sent_string, self.letter_to_ix)
             embeds = self.character_embeddings(embeds)
-            
-        h0 = torch.zeros(self.num_layers * 2, embeds.shape[1], self.hidden_dim).to(device)
-        c0 = torch.zeros(self.num_layers * 2, embeds.shape[1], self.hidden_dim).to(device)
-        out, _ = self.lstm(embeds, (h0, c0))
+
+        out, _ = self.lstm(embeds)
         tag_space = self.hidden2tag(out.view(embeds.shape[0], embeds.shape[1], -1))
         tag_scores = F.log_softmax(tag_space, dim=2).squeeze()  # dim = (len(data_points),batch,len(tag))
-        if (batch_size == 1):
-            packed_sent,packed_tags = sent_string,tags
-        elif (batch_size > 1) : # if the input is more than one datapoint
+
+        if batch_size == 1:
+            packed_sent, packed_tags = sent_string, tags
+        elif batch_size > 1:  # if the input is more than one datapoint
             length_list = []
-            for sentence in data_points: 
+            for sentence in data_points:
                 length_list.append(len(sentence.string))
-            
-            packed_sent,packed_tags = '',''
-            for sent in sent_string: packed_sent += sent 
+
+            packed_sent, packed_tags = '', ''
+            for sent in sent_string: packed_sent += sent
             for tag in tags: packed_tags += tag
 
             tag_scores = pack_padded_sequence(tag_scores, length_list, enforce_sorted=False).data
             targets = pack_padded_sequence(targets, length_list, enforce_sorted=False).data
             tag_space = pack_padded_sequence(tag_space, length_list, enforce_sorted=False).data
 
- 
-        if self.use_CRF == False:
+        if not self.use_CRF:
+
             tag_predict = self.prediction_str(tag_scores)
-            loss = self.loss_function(tag_scores, targets)
-            if foreval: return loss,packed_sent,packed_tags,tag_predict
-            else: return loss
-        
-        elif self.use_CRF == True: # extract lstm_features for CRF layer 
-            lstm_feats = tag_space.squeeze() # remark: packed sequence
-            loss = self.neg_log_likelihood(lstm_feats,targets)
+            loss = self.loss_function(tag_space, targets)
+            if foreval:
+                return loss, packed_sent, packed_tags, tag_predict
+            else:
+                return loss
+
+        else:  # extract lstm_features for CRF layer
+            lstm_feats = tag_space.squeeze()  # remark: packed sequence
+            loss = self.neg_log_likelihood(lstm_feats, targets)
             # tag_predict = self.forward(data_points)
-            
+
             # if foreval : return loss,packed_sent,packed_tags,tag_predict
-            if foreval : return loss,packed_sent,packed_tags,lstm_feats
-            else: return loss
-        
+            if foreval:
+                return loss, packed_sent, packed_tags, lstm_feats
+            else:
+                return loss
 
         # TODO: what is currently your forward() goes here, followed by the loss computation
         # Since the DataPoint brings its own label, you can compute the loss here
-    
 
     @abstractmethod
     def evaluate(
@@ -338,7 +353,6 @@ class FlairTokenizer(flair.nn.Model):
             embedding_storage_mode: str = "none",
             mini_batch_size: int = 32,
             num_workers: int = 8,
-            wsd_evaluation: bool = False
     ) -> (Result, float):
         """Evaluates the model. Returns a Result object containing evaluation
         results and a loss value. Implement this to enable evaluation.
@@ -356,17 +370,23 @@ class FlairTokenizer(flair.nn.Model):
         data_loader = DataLoader(sentences, batch_size=mini_batch_size, num_workers=num_workers)
         eval_loss = 0
         with torch.no_grad():
-            error_sentence = []; R_score, P_score, F1_score = [], [], []
+            error_sentence = []
+            R_score, P_score, F1_score = [], [], []
             # for data_points in sentences:
-            for batch in data_loader: # assume input of evaluate fct is the whole dataset, and each element is a batch 
-                if self.use_CRF == True:
-                    loss,packed_sent,packed_tags,lstm_feats = self.forward_loss(batch,foreval=True)
+            for batch in data_loader:  # assume input of evaluate fct is the whole dataset, and each element is a batch
+                if self.use_CRF:
+                    loss, packed_sent, packed_tags, lstm_feats = self.forward_loss(batch, foreval=True)
                     tag_predict = self.forward(batch)
                 else:
-                    loss,packed_sent,packed_tags,tag_predict = self.forward_loss(batch,foreval=True)
-                
+                    loss, packed_sent, packed_tags, tag_predict = self.forward_loss(batch, foreval=True)
+
+                print(tag_predict)
                 reference = self.find_token((packed_sent, packed_tags))
                 candidate = self.find_token((packed_sent, tag_predict))
+
+                print(reference)
+                print(candidate)
+
                 inter = [c for c in candidate if c in reference]
 
                 if len(candidate) != 0:
@@ -374,13 +394,14 @@ class FlairTokenizer(flair.nn.Model):
                     P = len(inter) / len(candidate)
                 else:
                     R, P = 0, 0  # when len(candidate) = 0, which means the model fail to extract any token from the sentence
-                    error_sentence.append((packed_sent, packed_tags, tag_predict))                
+                    error_sentence.append((packed_sent, packed_tags, tag_predict))
                 if (len(candidate) != 0) & ((R + P) != 0):  # if R = P = 0, meaning len(inter) = 0, R+P = 0
                     F1 = 2 * R * P / (R + P)
                 else:
                     F1 = 0
                     if (packed_sent, packed_tags, tag_predict) not in error_sentence:
                         error_sentence.append((packed_sent, packed_tags, tag_predict))
+
                 R_score.append(R)
                 P_score.append(P)
                 F1_score.append(F1)
@@ -388,10 +409,10 @@ class FlairTokenizer(flair.nn.Model):
                 eval_loss += loss
 
             detailed_result = (
-                    "\nResults:"
-                    f"\n- F1-score : {np.mean(F1_score)}"
-                    f"\n- Precision-score : {np.mean(P_score)}"
-                    f"\n- Recall-score : {np.mean(R_score)}"
+                "\nResults:"
+                f"\n- F1-score : {np.mean(F1_score)}"
+                f"\n- Precision-score : {np.mean(P_score)}"
+                f"\n- Recall-score : {np.mean(R_score)}"
             )
 
             # line for log file
@@ -410,36 +431,34 @@ class FlairTokenizer(flair.nn.Model):
             # TODO: Your evaluation routine goes here. For the DataPoints passed into this method, compute the accuracy
         # and store it in a Result object, which you return.
 
-
     def _get_state_dict(self):
         model_state = {
             "state_dict": self.state_dict(),
             'letter_to_ix': self.letter_to_ix,
-            'embedding_dim' : self.embedding_dim,
+            'embedding_dim': self.embedding_dim,
             'hidden_dim': self.hidden_dim,
-            'num_layers':self.num_layers,
-            'use_CSE':self.use_CSE,
-            'tag_to_ix':self.tag_to_ix,
-            'learning_rate':self.learning_rate,
-            'use_CRF':self.use_CRF
+            'num_layers': self.num_layers,
+            'use_CSE': self.use_CSE,
+            'tag_to_ix': self.tag_to_ix,
+            'learning_rate': self.learning_rate,
+            'use_CRF': self.use_CRF
         }
         return model_state
 
     @staticmethod
     def _init_model_with_state_dict(state):
         model = FlairTokenizer(
-            letter_to_ix = state['letter_to_ix'],
-            embedding_dim = state['embedding_dim'],
-            hidden_dim = state['hidden_dim'],
-            num_layers = state['num_layers'],
-            use_CSE = state['use_CSE'],
-            tag_to_ix = state['tag_to_ix'],
-            learning_rate = state['learning_rate'],
-            use_CRF = state['use_CRF']
+            letter_to_ix=state['letter_to_ix'],
+            embedding_dim=state['embedding_dim'],
+            hidden_dim=state['hidden_dim'],
+            num_layers=state['num_layers'],
+            use_CSE=state['use_CSE'],
+            tag_to_ix=state['tag_to_ix'],
+            learning_rate=state['learning_rate'],
+            use_CRF=state['use_CRF']
         )
         model.load_state_dict(state["state_dict"])
         return model
-
 
     @staticmethod
     @abstractmethod

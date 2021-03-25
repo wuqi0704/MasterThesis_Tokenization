@@ -1,77 +1,92 @@
-#%% define function to save and load
+import torch
+
+
+# %% define function to save and load
 def save_checkpoint(state, filename):
-    print("=> Saving checkpoint to: %s"%filename)
+    print("=> Saving checkpoint to: %s" % filename)
     torch.save(state, filename)
-    
+
+
 def load_checkpoint(checkpoint, model, optimizer):
     print("=> Loading checkpoint")
     model.load_state_dict(checkpoint['state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer'])
 
-# # Evaluation 
-#%% # load test datasets and calcultae evaluation metrics 
-from bilstm import LanguageList; import pickle
-data_test={}
-for language in LanguageList:
-    with open('./flair/resources/%s_Test.pickle'%language, 'rb') as f2:
-        test = pickle.load(f2) 
-    data_test[language]  = test 
 
-def evaluation(model_list,file_name,data_test):
-    from tqdm import tqdm; import numpy as np; import pandas as pd
-    
-    error_sentence = {}; Result = {}
+# # Evaluation
+# %% # load test datasets and calcultae evaluation metrics
+from bilstm import LanguageList;
+import pickle
+
+data_test = {}
+for language in LanguageList:
+    with open('./flair/resources/%s_Test.pickle' % language, 'rb') as f2:
+        test = pickle.load(f2)
+    data_test[language] = test
+
+
+def evaluation(model_list, file_name, data_test):
+    from tqdm import tqdm;
+    import numpy as np;
+    import pandas as pd
+
+    error_sentence = {};
+    Result = {}
     with torch.no_grad():
-        for i,language in enumerate(LanguageList):
-            load_checkpoint(torch.load(model_list[i],map_location=torch.device('cpu')), model, optimizer)
-            error_sentence[language] = []; R_score,P_score,F1_score = [],[],[]
-            
-            for element in tqdm(data_test[language],position=0):
-                inputs = prepare_sequence(element[0],letter_to_ix)
+        for i, language in enumerate(LanguageList):
+            load_checkpoint(torch.load(model_list[i], map_location=torch.device('cpu')), model, optimizer)
+            error_sentence[language] = [];
+            R_score, P_score, F1_score = [], [], []
+
+            for element in tqdm(data_test[language], position=0):
+                inputs = prepare_sequence(element[0], letter_to_ix)
                 tag_scores = model(inputs)
                 tag_predict = prediction_str(tag_scores)
 
                 reference = find_token(element)
-                candidate = find_token((element[0],tag_predict))
+                candidate = find_token((element[0], tag_predict))
 
                 inter = [c for c in candidate if c in reference]
-                if len(candidate) !=0: 
-                    R = len(inter) / len(reference) 
+                if len(candidate) != 0:
+                    R = len(inter) / len(reference)
                     P = len(inter) / len(candidate)
-                else: 
-                    R,P = 0,0 # when len(candidate) = 0, which means the model fail to extract any token from the sentence
-                    error_sentence[language].append((element,tag_predict))
-                
-                if (len(candidate) !=0) & ((R+P)  != 0) : # if R = P = 0, meaning len(inter) = 0, R+P = 0
-                    F1 = 2 * R*P / (R+P)
-                else: 
-                    F1=0 
-                    if (element,tag_predict) not in error_sentence[language]:
-                        error_sentence[language].append((element,tag_predict))
-                R_score.append(R); P_score.append(P);F1_score.append(F1)
-                
-            Result[language] = (np.mean(R_score), np.mean(P_score),np.mean(F1_score))
+                else:
+                    R, P = 0, 0  # when len(candidate) = 0, which means the model fail to extract any token from the sentence
+                    error_sentence[language].append((element, tag_predict))
+
+                if (len(candidate) != 0) & ((R + P) != 0):  # if R = P = 0, meaning len(inter) = 0, R+P = 0
+                    F1 = 2 * R * P / (R + P)
+                else:
+                    F1 = 0
+                    if (element, tag_predict) not in error_sentence[language]:
+                        error_sentence[language].append((element, tag_predict))
+                R_score.append(R);
+                P_score.append(P);
+                F1_score.append(F1)
+
+            Result[language] = (np.mean(R_score), np.mean(P_score), np.mean(F1_score))
 
     results = pd.DataFrame.from_dict(Result, orient='index')
-    results.columns = ['Recall','Precision','F1 score']
-    results.to_csv('./results/%s.csv'%file_name)
-    pd.DataFrame.from_dict(error_sentence, orient='index').T.to_csv('./failed_sentences/%s.csv'%file_name)
-    return error_sentence,results
+    results.columns = ['Recall', 'Precision', 'F1 score']
+    results.to_csv('./results/%s.csv' % file_name)
+    pd.DataFrame.from_dict(error_sentence, orient='index').T.to_csv('./failed_sentences/%s.csv' % file_name)
+    return error_sentence, results
+
 
 # type of issues: these will be saved in ./failed_sentences
 # 1. fail to extract any tokens -> len(candidate) = 0
 # 2. fail to match any correct tokens -> len(inter) = 0 
 
-#%% ### Word Level Evaluation 
+# %% ### Word Level Evaluation
 # case 1 : BiLSTM_ML
 # from bilstm import *
-from flair.tokenizer_model import FlairTokenizer
-#%%
+# from flair.tokenizer_model import FlairTokenizer
+# %%
 # model, optimizer,loss_function,checkpoint = initialize_model()
 # model_list = ['./trained_models/BiLSTM_ML256.tar']*len(LanguageList)
-model_list = ['./flair/resources/taggers/MLbilstm256/best-model.pt']*len(LanguageList)
+model_list = ['./flair/resources/taggers/MLbilstm256/best-model.pt'] * len(LanguageList)
 file_name = 'MLbilstm256'
-error_sentence,results = evaluation(model_list,file_name,data_test)
+error_sentence, results = evaluation(model_list, file_name, data_test)
 
 # #%% # case 2 : BiLSTM_SL
 # embedding_dim=2048
@@ -100,7 +115,6 @@ error_sentence,results = evaluation(model_list,file_name,data_test)
 # error_sentence,results = evaluation(model_list,file_name,data_test)
 
 
-
 # #%%
 # ### Word Level Evaluation 
 # # case 1 : BiLSTM_CRF_CN
@@ -114,12 +128,6 @@ error_sentence,results = evaluation(model_list,file_name,data_test)
 # use_CSE = False
 # embedding_dim = 4096 # because using CSE 
 # model, optimizer,loss_function,checkpoint = initialize_model(embedding_dim=4096)
-
-            
-
-
-
-
 
 
 # %%
