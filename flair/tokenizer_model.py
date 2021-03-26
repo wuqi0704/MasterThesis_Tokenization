@@ -241,7 +241,7 @@ class FlairTokenizer(flair.nn.Model):
             idxs = [to_ix[w] for w in seq]
             tensor = torch.tensor(idxs, dtype=torch.long, device=flair.device)
             tensor_list.append(tensor)
-        batch_tensor = pad_sequence(tensor_list, batch_first=False).squeeze()
+        batch_tensor = pad_sequence(tensor_list, batch_first=False)#.squeeze()
         if len(batch_tensor.shape) == 1:  # if there is only one datapoint, in another word batch_size=1
             return batch_tensor.view(-1, 1)  # add batch_size = 1 as dimension
         else:
@@ -282,58 +282,68 @@ class FlairTokenizer(flair.nn.Model):
     ) -> torch.tensor:
 
         """Performs a forward pass and returns a loss tensor for backpropagation. Implement this to enable training."""
-        try:  # if (self.batch_size > 1)
-            sent_string, tags = [], []
-            for sentence in data_points:
-                sent_string.append((sentence.string))
-                tags.append(sentence.get_labels('tokenization')[0].value)
-            batch_size = len(data_points)
-            if batch_size == 1:  # if only one element, then get rid of list.
-                sent_string = sent_string[0]
-                tags = tags[0]
-        except:  # for batch_size = 1
-            sent_string = data_points.string
-            tags = data_points.get_labels('tokenization')[0].value
-            batch_size = 1
+    # try:  # if (self.batch_size > 1)
+        if isinstance(data_points, LabeledString): # make sure data_points is a list, doesn't matter how many elements inside 
+            data_points = [data_points]
+        input_sent, input_tags = [], []
+        for sent in data_points:
+            input_sent.append((sent.string))
+            input_tags.append(sent.get_labels('tokenization')[0].value)
+        batch_size = len(data_points)
+            # if batch_size == 1:  # if only one element, then get rid of list.
+            #     sent_string = sent_string[0]
+            #     tags = tags[0]
+        # except:  # for batch_size = 1
+        #     sent_string = data_points.string
+        #     tags = data_points.get_labels('tokenization')[0].value
+        #     batch_size = 1
 
-        targets = self.prepare_batch(tags, self.tag_to_ix).squeeze().to(flair.device)
+        batch_input_tags = self.prepare_batch(input_tags, self.tag_to_ix).to(flair.device)
         if self.use_CSE:
-            embeds = self.prepare_cse(sent_string, batch_size=batch_size).to(flair.device)
+            embeds = self.prepare_cse(input_sent, batch_size=batch_size).to(flair.device)
         else:
-            embeds = self.prepare_batch(sent_string, self.letter_to_ix)
-            embeds = self.character_embeddings(embeds)
+            batch_input_sent = self.prepare_batch(input_sent, self.letter_to_ix)
+            embeds = self.character_embeddings(batch_input_sent)
 
         out, _ = self.lstm(embeds)
         tag_space = self.hidden2tag(out.view(embeds.shape[0], embeds.shape[1], -1))
-        tag_scores = F.log_softmax(tag_space, dim=2).squeeze()  # dim = (len(data_points),batch,len(tag))
+        tag_scores = F.log_softmax(tag_space, dim=2)#.squeeze()  # dim = (len(data_points),batch,len(tag)) # squeeze()
 
-        if batch_size == 1:
-            packed_sent, packed_tags = sent_string, tags
-        elif batch_size > 1:  # if the input is more than one datapoint
-            length_list = []
-            for sentence in data_points:
-                length_list.append(len(sentence.string))
+        # if batch_size == 1:
+        #     packed_sent, packed_tags = sent_string, tags
+        # elif batch_size > 1:  # if the input is more than one datapoint
+        length_list = []
+        for sentence in data_points:
+            length_list.append(len(sentence.string))
 
-            packed_sent, packed_tags = '', ''
-            for sent in sent_string: packed_sent += sent
-            for tag in tags: packed_tags += tag
+        packed_sent,packed_tags = '',''
+        for string in input_sent: packed_sent += string
+        for tag in input_tags: packed_tags += tag
 
-            tag_scores = pack_padded_sequence(tag_scores, length_list, enforce_sorted=False).data
-            targets = pack_padded_sequence(targets, length_list, enforce_sorted=False).data
-            tag_space = pack_padded_sequence(tag_space, length_list, enforce_sorted=False).data
+            # tag_scores = pack_padded_sequence(tag_scores, length_list, enforce_sorted=False).data
+            # targets = pack_padded_sequence(targets, length_list, enforce_sorted=False).data
+            # tag_space = pack_padded_sequence(tag_space, length_list, enforce_sorted=False).data
+        
+        packed_tag_space =torch.tensor([],dtype=torch.long, device=flair.device)
+        packed_tag_scores = torch.tensor([],dtype=torch.long, device=flair.device)
+        packed_batch_input_tags = torch.tensor([],dtype=torch.long, device=flair.device)
+        for i in np.arange(batch_size):
+            packed_tag_scores = torch.cat((packed_tag_scores,(tag_scores[:length_list[i],i,:])))
+            packed_tag_space = torch.cat((packed_tag_space,(tag_space[:length_list[i],i,:])))
+            packed_batch_input_tags = torch.cat((packed_batch_input_tags,(batch_input_tags[:length_list[i],i])))
 
         if not self.use_CRF:
 
-            tag_predict = self.prediction_str(tag_scores)
-            loss = self.loss_function(tag_space, targets)
+            tag_predict = self.prediction_str(packed_tag_scores)
+            loss = self.loss_function(packed_tag_space, packed_batch_input_tags)
             if foreval:
                 return loss, packed_sent, packed_tags, tag_predict
             else:
                 return loss
 
         else:  # extract lstm_features for CRF layer
-            lstm_feats = tag_space.squeeze()  # remark: packed sequence
-            loss = self.neg_log_likelihood(lstm_feats, targets)
+            lstm_feats = packed_tag_space.squeeze()  # remark: packed sequence
+            loss = self.neg_log_likelihood(lstm_feats, packed_batch_input_tags)
             # tag_predict = self.forward(data_points)
 
             # if foreval : return loss,packed_sent,packed_tags,tag_predict
@@ -376,16 +386,12 @@ class FlairTokenizer(flair.nn.Model):
             for batch in data_loader:  # assume input of evaluate fct is the whole dataset, and each element is a batch
                 if self.use_CRF:
                     loss, packed_sent, packed_tags, lstm_feats = self.forward_loss(batch, foreval=True)
-                    tag_predict = self.forward(batch)
+                    packed_tag_predict = self.forward(batch)
                 else:
-                    loss, packed_sent, packed_tags, tag_predict = self.forward_loss(batch, foreval=True)
+                    loss, packed_sent, packed_tags, packed_tag_predict = self.forward_loss(batch, foreval=True)
 
-                print(tag_predict)
                 reference = self.find_token((packed_sent, packed_tags))
-                candidate = self.find_token((packed_sent, tag_predict))
-
-                print(reference)
-                print(candidate)
+                candidate = self.find_token((packed_sent, packed_tag_predict))
 
                 inter = [c for c in candidate if c in reference]
 
@@ -394,13 +400,13 @@ class FlairTokenizer(flair.nn.Model):
                     P = len(inter) / len(candidate)
                 else:
                     R, P = 0, 0  # when len(candidate) = 0, which means the model fail to extract any token from the sentence
-                    error_sentence.append((packed_sent, packed_tags, tag_predict))
+                    error_sentence.append((packed_sent, packed_tags, packed_tag_predict))
                 if (len(candidate) != 0) & ((R + P) != 0):  # if R = P = 0, meaning len(inter) = 0, R+P = 0
                     F1 = 2 * R * P / (R + P)
                 else:
                     F1 = 0
-                    if (packed_sent, packed_tags, tag_predict) not in error_sentence:
-                        error_sentence.append((packed_sent, packed_tags, tag_predict))
+                    if (packed_sent, packed_tags, packed_tag_predict) not in error_sentence:
+                        error_sentence.append((packed_sent, packed_tags, packed_tag_predict))
 
                 R_score.append(R)
                 P_score.append(P)

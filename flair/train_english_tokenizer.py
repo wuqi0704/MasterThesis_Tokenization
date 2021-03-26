@@ -56,7 +56,7 @@ from flair.trainers import ModelTrainer
 
 trainer: ModelTrainer = ModelTrainer(tokenizer, corpus)
 
-mini_batch_size = 2
+mini_batch_size = 1
 
 # 6. train
 trainer.train(
@@ -65,3 +65,5 @@ trainer.train(
     mini_batch_size=mini_batch_size,
     max_epochs=30,
 )
+
+# %%
