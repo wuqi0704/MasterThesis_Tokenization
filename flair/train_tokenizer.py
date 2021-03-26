@@ -55,11 +55,11 @@ for sentence in corpus.get_all_sentences():
 print('functions.py : Nr. of distinguish character: ', len(letter_to_ix.keys()))
 #%%
 # 4. initialize tokenizer
-for HIDDEN_DIM in [32,64,128,256,512]:
+for EMBEDDING_DIM in [64,128,256,512,1024]: # /2048/4096
     tokenizer: FlairTokenizer = FlairTokenizer(
         letter_to_ix=letter_to_ix,
-        embedding_dim=256,
-        hidden_dim=HIDDEN_DIM,
+        embedding_dim=EMBEDDING_DIM,
+        hidden_dim=128,
         num_layers=1,
         use_CSE=False,
         use_CRF=False,
@@ -72,7 +72,7 @@ for HIDDEN_DIM in [32,64,128,256,512]:
 
     # 6. train
     trainer.train(
-        "resources/taggers/1_h%s"%HIDDEN_DIM,
+        "resources/taggers/2_e%s"%EMBEDDING_DIM,
         learning_rate=0.1,
         mini_batch_size=32,
         max_epochs=30,
