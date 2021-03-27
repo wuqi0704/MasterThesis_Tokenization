@@ -335,12 +335,12 @@ class FlairTokenizer(flair.nn.Model):
             packed_tag_scores = torch.cat((packed_tag_scores,tag_scores[:length_list[i],i,:]))
             packed_tag_space = torch.cat((packed_tag_space,tag_space[:length_list[i],i,:]))
             packed_batch_input_tags = torch.cat((packed_batch_input_tags,batch_input_tags[:length_list[i],i]))
-            # loss += self.loss_function(tag_space[:length_list[i],i,:],batch_input_tags[:length_list[i],i])
+            # loss += self.loss_function(tag_scores[:length_list[i],i,:],batch_input_tags[:length_list[i],i])
         
         if not self.use_CRF:
 
             tag_predict = self.prediction_str(packed_tag_scores)
-            loss = self.loss_function(packed_tag_space, packed_batch_input_tags)
+            loss = self.loss_function(packed_tag_scores, packed_batch_input_tags)
             if foreval:
                 return loss, packed_sent, packed_tags, tag_predict
             else:
@@ -380,6 +380,7 @@ class FlairTokenizer(flair.nn.Model):
         # from flair.data import LabeledString
         # if isinstance(sentences, LabeledString):
         #     sentences = [sentences]
+        print(type(sentences))
         if type(sentences) != list:
             sentences = [sentences]
         data_loader = DataLoader(sentences, batch_size=mini_batch_size, num_workers=num_workers)

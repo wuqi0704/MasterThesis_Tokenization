@@ -49,8 +49,10 @@ for language in LanguageList:
 import torch 
 # model_name = '1_h512'
 # state = torch.load('./resources/taggers/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
-model_name = '2_e64'
-state = torch.load('/Users/qier/Downloads/ML_Tagger/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
+# model_name = '2_e64'
+# state = torch.load('/Users/qier/Downloads/ML_Tagger/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
+model_name = 'SL_CHINESE'
+state = torch.load('./resources/taggers/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
 from tokenizer_model import FlairTokenizer
 tokenizer = FlairTokenizer() 
 model = tokenizer._init_model_with_state_dict(state)
@@ -191,7 +193,7 @@ for batch in data_loader:# data_loader always has input as a list
     candidate = model.find_token((packed_sent, packed_tag_predict))
     inter.append( [c for c in candidate if c in reference])
 print(loss)
-
+print(inter)
 #%% #############################################################################
 # debug forward loss
 # def forward_loss(
@@ -239,8 +241,11 @@ for i in np.arange(batch_size):
 
 
 tag_predict = model.prediction_str(packed_tag_scores)
+print(loss)
 # loss = model.loss_function(packed_tag_space, packed_batch_input_tags)
 
 
 
 
+
+# %%
