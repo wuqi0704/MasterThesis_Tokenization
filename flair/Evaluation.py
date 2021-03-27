@@ -47,8 +47,10 @@ for language in LanguageList:
             data_test[language].remove(item)
 
 import torch 
-model_name = '1_h512'
-state = torch.load('./resources/taggers/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
+
+# state = torch.load('./resources/taggers/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
+model_name = '2_e64'
+state = torch.load('/Users/qier/Downloads/ML_Tagger/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
 from tokenizer_model import FlairTokenizer
 tokenizer = FlairTokenizer() 
 model = tokenizer._init_model_with_state_dict(state)
@@ -69,3 +71,5 @@ out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/%s.csv'%mode
 
 
 
+
+# %%

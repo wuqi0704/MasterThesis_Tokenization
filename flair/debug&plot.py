@@ -47,8 +47,10 @@ for language in LanguageList:
             data_test[language].remove(item)
 
 import torch 
-model_name = '1_h512'
-state = torch.load('./resources/taggers/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
+# model_name = '1_h512'
+# state = torch.load('./resources/taggers/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
+model_name = '2_e64'
+state = torch.load('/Users/qier/Downloads/ML_Tagger/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
 from tokenizer_model import FlairTokenizer
 tokenizer = FlairTokenizer() 
 model = tokenizer._init_model_with_state_dict(state)
@@ -142,7 +144,7 @@ import torch.nn.functional as F
 test1 = [data_test['CHINESE'][1],data_test['CHINESE'][1]]
 test2 = data_test['CHINESE'][0:10]
 
-data_loader = DataLoader(test1, batch_size=1, num_workers=8)
+data_loader = DataLoader(test1, batch_size=2, num_workers=8)
 
 
 #%%
@@ -188,5 +190,57 @@ for batch in data_loader:# data_loader always has input as a list
     reference = model.find_token((packed_sent, packed_tags))
     candidate = model.find_token((packed_sent, packed_tag_predict))
     inter.append( [c for c in candidate if c in reference])
+print(loss)
 
-# %%
+#%% #############################################################################
+# debug forward loss
+# def forward_loss(
+#         data_points: Union[List[DataPoint], DataPoint],
+#         foreval=False,
+# ) -> torch.tensor:
+for batch in data_loader:# data_loader always has input as a list
+    data_points = batch
+
+if isinstance(data_points, LabeledString): # make sure data_points is a list, doesn't matter how many elements inside 
+    data_points = [data_points]
+input_sent, input_tags = [], []
+for sent in data_points:
+    input_sent.append((sent.string))
+    input_tags.append(sent.get_labels('tokenization')[0].value)
+batch_size = len(data_points)
+
+batch_input_tags = model.prepare_batch(input_tags, model.tag_to_ix).to(flair.device)
+
+batch_input_sent = model.prepare_batch(input_sent, model.letter_to_ix)
+embeds = model.character_embeddings(batch_input_sent)
+
+out, _ = model.lstm(embeds)
+tag_space = model.hidden2tag(out.view(embeds.shape[0], embeds.shape[1], -1))
+tag_scores = F.log_softmax(tag_space, dim=2)#.squeeze()  # dim = (len(data_points),batch,len(tag))
+
+length_list = []
+for sentence in data_points:
+    length_list.append(len(sentence.string))
+
+packed_sent,packed_tags = '',''
+for string in input_sent: packed_sent += string
+for tag in input_tags: packed_tags += tag
+
+# packed_tag_space =torch.tensor([],dtype=torch.long, device=flair.device)
+# packed_tag_scores = torch.tensor([],dtype=torch.long, device=flair.device)
+# packed_batch_input_tags = torch.tensor([],dtype=torch.long, device=flair.device)
+loss = 0
+for i in np.arange(batch_size):
+    packed_tag_scores = torch.cat((packed_tag_scores,tag_scores[:length_list[i],i,:]))
+    # packed_tag_space = torch.cat((packed_tag_space,tag_space[:length_list[i],i,:]))
+    # packed_batch_input_tags = torch.cat((packed_batch_input_tags,batch_input_tags[:length_list[i],i]))
+
+    loss += model.loss_function(tag_space[:length_list[i],i,:],batch_input_tags[:length_list[i],i])
+
+
+tag_predict = model.prediction_str(packed_tag_scores)
+# loss = model.loss_function(packed_tag_space, packed_batch_input_tags)
+
+
+
+

@@ -241,7 +241,7 @@ class FlairTokenizer(flair.nn.Model):
             idxs = [to_ix[w] for w in seq]
             tensor = torch.tensor(idxs, dtype=torch.long, device=flair.device)
             tensor_list.append(tensor)
-        batch_tensor = pad_sequence(tensor_list, batch_first=False)#.squeeze()
+        batch_tensor = pad_sequence(tensor_list, batch_first=False).squeeze()
         if len(batch_tensor.shape) == 1:  # if there is only one datapoint, in another word batch_size=1
             return batch_tensor.view(-1, 1)  # add batch_size = 1 as dimension
         else:
@@ -283,8 +283,11 @@ class FlairTokenizer(flair.nn.Model):
 
         """Performs a forward pass and returns a loss tensor for backpropagation. Implement this to enable training."""
     # try:  # if (self.batch_size > 1)
-        if isinstance(data_points, LabeledString): # make sure data_points is a list, doesn't matter how many elements inside 
+        # if isinstance(data_points, LabeledString): # make sure data_points is a list, doesn't matter how many elements inside 
+        #     data_points = [data_points] #FIXME: why is this not working?
+        if type(data_points) != list:
             data_points = [data_points]
+
         input_sent, input_tags = [], []
         for sent in data_points:
             input_sent.append((sent.string))
@@ -307,7 +310,7 @@ class FlairTokenizer(flair.nn.Model):
 
         out, _ = self.lstm(embeds)
         tag_space = self.hidden2tag(out.view(embeds.shape[0], embeds.shape[1], -1))
-        tag_scores = F.log_softmax(tag_space, dim=2)#.squeeze()  # dim = (len(data_points),batch,len(tag)) # squeeze()
+        tag_scores = F.log_softmax(tag_space, dim=2)#.squeeze()  # dim = (len(data_points),batch,len(tag))
 
         # if batch_size == 1:
         #     packed_sent, packed_tags = sent_string, tags
@@ -320,18 +323,20 @@ class FlairTokenizer(flair.nn.Model):
         for string in input_sent: packed_sent += string
         for tag in input_tags: packed_tags += tag
 
-            # tag_scores = pack_padded_sequence(tag_scores, length_list, enforce_sorted=False).data
-            # targets = pack_padded_sequence(targets, length_list, enforce_sorted=False).data
-            # tag_space = pack_padded_sequence(tag_space, length_list, enforce_sorted=False).data
+        # tag_scores = pack_padded_sequence(tag_scores, length_list, enforce_sorted=False).data
+        # targets = pack_padded_sequence(targets, length_list, enforce_sorted=False).data
+        # tag_space = pack_padded_sequence(tag_space, length_list, enforce_sorted=False).data
         
         packed_tag_space =torch.tensor([],dtype=torch.long, device=flair.device)
         packed_tag_scores = torch.tensor([],dtype=torch.long, device=flair.device)
         packed_batch_input_tags = torch.tensor([],dtype=torch.long, device=flair.device)
+        # loss = 0
         for i in np.arange(batch_size):
-            packed_tag_scores = torch.cat((packed_tag_scores,(tag_scores[:length_list[i],i,:])))
-            packed_tag_space = torch.cat((packed_tag_space,(tag_space[:length_list[i],i,:])))
-            packed_batch_input_tags = torch.cat((packed_batch_input_tags,(batch_input_tags[:length_list[i],i])))
-
+            packed_tag_scores = torch.cat((packed_tag_scores,tag_scores[:length_list[i],i,:]))
+            packed_tag_space = torch.cat((packed_tag_space,tag_space[:length_list[i],i,:]))
+            packed_batch_input_tags = torch.cat((packed_batch_input_tags,batch_input_tags[:length_list[i],i]))
+            # loss += self.loss_function(tag_space[:length_list[i],i,:],batch_input_tags[:length_list[i],i])
+        
         if not self.use_CRF:
 
             tag_predict = self.prediction_str(packed_tag_scores)
@@ -342,8 +347,8 @@ class FlairTokenizer(flair.nn.Model):
                 return loss
 
         else:  # extract lstm_features for CRF layer
-            lstm_feats = packed_tag_space.squeeze()  # remark: packed sequence
-            loss = self.neg_log_likelihood(lstm_feats, packed_batch_input_tags)
+            lstm_feats = packed_tag_space.squeeze()  # remark: packed sequence #FIXME
+            loss = self.neg_log_likelihood(lstm_feats, packed_batch_input_tags)#FIXME
             # tag_predict = self.forward(data_points)
 
             # if foreval : return loss,packed_sent,packed_tags,tag_predict
@@ -373,10 +378,10 @@ class FlairTokenizer(flair.nn.Model):
         :return: Returns a Tuple consisting of a Result object and a loss float value
         """
         # from flair.data import LabeledString
-        if isinstance(sentences, LabeledString):
+        # if isinstance(sentences, LabeledString):
+        #     sentences = [sentences]
+        if type(sentences) != list:
             sentences = [sentences]
-        # if not isinstance(sentences, Dataset):
-        #     sentences = SentenceDataset(sentences)
         data_loader = DataLoader(sentences, batch_size=mini_batch_size, num_workers=num_workers)
         eval_loss = 0
         with torch.no_grad():
