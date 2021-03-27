@@ -42,7 +42,7 @@ for language in LanguageList:
 
 # 2. make a Corpus object
 corpus: Corpus = Corpus(SentenceDataset(data_train), SentenceDataset(data_test), SentenceDataset(data_dev))
-corpus = corpus.downsample(0.01)
+# corpus = corpus.downsample(0.01)
 # 3. make the letter dictionary from the corpus
 letter_to_ix = {}
 letter_to_ix[''] = 0  # need this for padding
