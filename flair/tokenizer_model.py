@@ -283,10 +283,10 @@ class FlairTokenizer(flair.nn.Model):
 
         """Performs a forward pass and returns a loss tensor for backpropagation. Implement this to enable training."""
     # try:  # if (self.batch_size > 1)
-        # if isinstance(data_points, LabeledString): # make sure data_points is a list, doesn't matter how many elements inside 
-        #     data_points = [data_points] #FIXME: why is this not working?
-        if type(data_points) != list:
-            data_points = [data_points]
+        if isinstance(data_points, LabeledString): # make sure data_points is a list, doesn't matter how many elements inside 
+            data_points = [data_points] #FIXME: why is this not working?
+        # if type(data_points) != list:
+        #     data_points = [data_points]
 
         input_sent, input_tags = [], []
         for sent in data_points:
@@ -377,12 +377,9 @@ class FlairTokenizer(flair.nn.Model):
         freshly recomputed, 'cpu' means all embeddings are stored on CPU, or 'gpu' means all embeddings are stored on GPU
         :return: Returns a Tuple consisting of a Result object and a loss float value
         """
-        # from flair.data import LabeledString
-        # if isinstance(sentences, LabeledString):
-        #     sentences = [sentences]
-        print(type(sentences))
-        if type(sentences) != list:
-            sentences = [sentences]
+        if not isinstance(sentences, Dataset):
+            sentences = SentenceDataset(sentences)
+
         data_loader = DataLoader(sentences, batch_size=mini_batch_size, num_workers=num_workers)
         eval_loss = 0
         with torch.no_grad():
