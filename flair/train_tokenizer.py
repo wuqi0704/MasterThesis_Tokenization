@@ -65,16 +65,16 @@ for EMBEDDING_DIM in [64,128,256,512,1024]: # /2048/4096
         use_CRF=False,
     )
 
-# 5. initialize trainer
-from flair.trainers import ModelTrainer
+    # 5. initialize trainer
+    from flair.trainers import ModelTrainer
 
-trainer: ModelTrainer = ModelTrainer(tokenizer, corpus)
+    trainer: ModelTrainer = ModelTrainer(tokenizer, corpus)
 
-# 6. train
-trainer.train(
-    "resources/taggers/2_e%s"%EMBEDDING_DIM,
-    learning_rate=0.1,
-    mini_batch_size=32,
-    max_epochs=30,
-)
+    # 6. train
+    trainer.train(
+        "resources/taggers/2_e%s"%EMBEDDING_DIM,
+        learning_rate=0.1,
+        mini_batch_size=32,
+        max_epochs=30,
+    )
 

@@ -49,7 +49,7 @@ for language in LanguageList:
 import torch 
 
 # state = torch.load('./resources/taggers/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
-model_name = '2_e64'
+model_name = '2_e2048'
 state = torch.load('/Users/qier/Downloads/ML_Tagger/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
 from tokenizer_model import FlairTokenizer
 tokenizer = FlairTokenizer() 
