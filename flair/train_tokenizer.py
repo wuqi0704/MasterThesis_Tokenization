@@ -56,14 +56,14 @@ print('functions.py : Nr. of distinguish character: ', len(letter_to_ix.keys()))
 # 4. initialize tokenizer
 for EMBEDDING_DIM in [64,128,256,512,1024]: # /2048/4096
 
-tokenizer: FlairTokenizer = FlairTokenizer(
-    letter_to_ix=letter_to_ix,
-    embedding_dim=EMBEDDING_DIM,
-    hidden_dim=128,
-    num_layers=1,
-    use_CSE=False,
-    use_CRF=False,
-)
+    tokenizer: FlairTokenizer = FlairTokenizer(
+        letter_to_ix=letter_to_ix,
+        embedding_dim=EMBEDDING_DIM,
+        hidden_dim=128,
+        num_layers=1,
+        use_CSE=False,
+        use_CRF=False,
+    )
 
 # 5. initialize trainer
 from flair.trainers import ModelTrainer
