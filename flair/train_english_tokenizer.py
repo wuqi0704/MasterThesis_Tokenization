@@ -26,7 +26,6 @@ data_dev.extend([LabeledString(pair[0]).set_label('tokenization', pair[1]) for p
 # 2. make a Corpus object
 corpus: Corpus = Corpus(SentenceDataset(data_train), SentenceDataset(data_test), SentenceDataset(data_dev)).downsample(0.01)
 
-# corpus = corpus.downsample(0.01)
 # 3. make the letter dictionary from the corpus
 letter_to_ix = {'': 0}
 
@@ -42,10 +41,10 @@ HIDDEN_DIM = 200
 
 tokenizer: FlairTokenizer = FlairTokenizer(
     letter_to_ix=letter_to_ix,
-    embedding_dim=4096,
+    embedding_dim=256,
     hidden_dim=HIDDEN_DIM,
     num_layers=1,
-    use_CSE=True,
+    use_CSE=False,
     use_CRF=True,
 )
 
@@ -61,7 +60,7 @@ trainer.train(
     f"resources/taggers/tokenizer_english_crf_{HIDDEN_DIM}-{mini_batch_size}",
     learning_rate=0.1,
     mini_batch_size=mini_batch_size,
-    max_epochs=30,
+    max_epochs=5,
 )
 
 # %%
