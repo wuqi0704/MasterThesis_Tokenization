@@ -223,10 +223,10 @@ class FlairTokenizer(flair.nn.Model):
         return tag_seq_str
 
     def prepare_cse(self, sentence, batch_size=1):
-        if (batch_size == 1) & (not isinstance(sentence, list)):
-            embeds_f = self.lm_f.get_representation([sentence], '\n', '\n')[1:-1, :, :]
-            embeds_b = self.lm_b.get_representation([sentence], '\n', '\n')[1:-1, :, :]
-        elif (batch_size == 1) & (isinstance(sentence, list)):
+        # if (batch_size == 1) & (not isinstance(sentence, list)):
+        #     embeds_f = self.lm_f.get_representation([sentence], '\n', '\n')[1:-1, :, :]
+        #     embeds_b = self.lm_b.get_representation([sentence], '\n', '\n')[1:-1, :, :]
+        if (batch_size == 1) : # & (isinstance(sentence, list)):
             embeds_f = self.lm_f.get_representation(sentence, '\n', '\n')[1:-1, :, :]
             embeds_b = self.lm_b.get_representation(sentence, '\n', '\n')[1:-1, :, :]
         else:
@@ -285,8 +285,11 @@ class FlairTokenizer(flair.nn.Model):
     # try:  # if (self.batch_size > 1)
         if isinstance(data_points, LabeledString): # make sure data_points is a list, doesn't matter how many elements inside 
             data_points = [data_points] #FIXME: why is this not working?
+        # print(type(data_points))
         # if type(data_points) != list:
-        #     data_points = [data_points]
+        #     raise TypeError('Expected Input of datatype: List of LabeledString')
+        # if type(data_points[0]) not LabeledString:
+        #     raise TypeError('Expected Input of datatype: List of LabeledString') 
 
         input_sent, input_tags = [], []
         for sent in data_points:
@@ -347,8 +350,8 @@ class FlairTokenizer(flair.nn.Model):
                 return loss
 
         else:  # extract lstm_features for CRF layer
-            lstm_feats = packed_tag_space.squeeze()  # remark: packed sequence #FIXME
-            loss = self.neg_log_likelihood(lstm_feats, packed_batch_input_tags)#FIXME
+            lstm_feats = packed_tag_space #.squeeze()  # remark: packed sequence 
+            loss = self.neg_log_likelihood(lstm_feats, packed_batch_input_tags)
             # tag_predict = self.forward(data_points)
 
             # if foreval : return loss,packed_sent,packed_tags,tag_predict

@@ -91,9 +91,9 @@ model = tokenizer._init_model_with_state_dict(state)
 #%% # draw perfermance graph 
 import pandas as pd
 s = pd.DataFrame()
-for HIDDEN_DIM in ['32','64','128','256','512']:
-    a = (pd.read_csv("/Users/qier/MasterThesis_Tokenization/results/1_h%s.csv"%HIDDEN_DIM))
-    a['hidden_dim'] = HIDDEN_DIM
+for EMBEDDING_DIM in ['64','256','512','1024','2048']:
+    a = (pd.read_csv("/Users/qier/MasterThesis_Tokenization/results/2_e%s.csv"%EMBEDDING_DIM))
+    a['embed_dim'] = EMBEDDING_DIM
     s = pd.concat([s,a],axis=0)
 # s.groupby(['Unnamed: 0']).mean()
 s
@@ -106,18 +106,18 @@ f = plt.figure(figsize = [12,5])
 ax = f.add_subplot(121)
 for language in g1.language.unique():
     c = g1[g1['language']==language]
-    ax.plot(c.hidden_dim,c['F1-score'],label = language)
+    ax.plot(c.embed_dim,c['F1-score'],label = language)
 plt.legend(loc = 'lower right',prop={'size': 8})
 plt.title('group1: F1-score > 0.95')
-ax.set_xlabel('hidden dimension')
+ax.set_xlabel('embedding dimension')
 ax2 = f.add_subplot(122)
 for language in g2.language.unique():
     c = g2[g2['language']==language]
-    ax2.plot(c.hidden_dim,c['F1-score'],label=language)
+    ax2.plot(c.embed_dim,c['F1-score'],label=language)
 plt.legend()
 plt.title('group2: F1-score <= 0.95')
-ax2.set_xlabel('hidden dimension')
-plt.savefig('hidden.png')
+ax2.set_xlabel('embedding dimension')
+plt.savefig('embedding.png')
 # %% Debug evaluation errors : 
 
 test_results, test_loss = model.evaluate(

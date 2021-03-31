@@ -67,15 +67,16 @@ tokenizer: FlairTokenizer = FlairTokenizer(letter_to_ix, embedding_dim, hidden_d
                                            use_CSE,use_CRF=use_CRF)
 
 # FIXME: do a forward pass and compute the loss for two data points
-print(tokenizer.forward_loss([sentence, sentence_2]))
-print(tokenizer.forward_loss(sentence))   
 
 sentences = [sentence, sentence_2]
 print(tokenizer.forward_loss(sentences,foreval=True))
-# print(tokenizer.forward_loss(sentence,foreval=True))
+print(tokenizer.forward_loss(sentence,foreval=True))
 print(tokenizer.evaluate(sentences))
-print(tokenizer.evaluate(sentence))
+# print(tokenizer.evaluate(sentence))
 
+#%%
+print(type(sentence))
+isinstance(sentence, LabeledString)
 #%%
 use_CRF = True
 # init the tokenizer like you would your LSTMTagger
@@ -84,13 +85,13 @@ tokenizer: FlairTokenizer = FlairTokenizer(letter_to_ix, embedding_dim, hidden_d
 
 # FIXME: do a forward pass and compute the loss for two data points
 print(tokenizer.forward_loss([sentence, sentence_2]))
-print(tokenizer.forward_loss(sentence))   
+print(tokenizer.forward_loss([sentence]))   
 
 sentences = [sentence, sentence_2]
 print(tokenizer.forward_loss(sentences,foreval=True))
-print(tokenizer.forward_loss(sentence,foreval=True))
+print(tokenizer.forward_loss([sentence],foreval=True))
 print(tokenizer.evaluate(sentences))
-print(tokenizer.evaluate(sentence))
+print(tokenizer.evaluate([sentence]))
 #%%
 use_CSE = False
 # init the tokenizer like you would your LSTMTagger
