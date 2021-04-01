@@ -57,16 +57,14 @@ mini_batch_size = 1
 
 # 6. train
 trainer.train(
-    f"resources/taggers/tokenizer_english_cse_{HIDDEN_DIM}-{mini_batch_size}",
+    f"resources/taggers/english_cse_{HIDDEN_DIM}-{mini_batch_size}",
     learning_rate=0.1,
     mini_batch_size=mini_batch_size,
     max_epochs=5,
 )
 # #%%
 # import torch
-# model_name = '2_e64'
-# state = torch.load('/Users/qier/MasterThesis_Tokenization/flair/resources/taggers/tokenizer_english_crf_200-1/final-model.pt',map_location=torch.device('cpu'))
+# state = torch.load('/Users/qier/Downloads/ML_Tagger/tokenizer_english_cse_200-1/final-model.pt',map_location=torch.device('cpu'))
 # tokenizer = FlairTokenizer() 
 # model = tokenizer._init_model_with_state_dict(state)
-# # %%
 # model.parameters

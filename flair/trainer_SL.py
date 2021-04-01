@@ -1,4 +1,4 @@
-#%% BiLSTM model ML 
+#%% BiLSTM model SL
 from flair.data import Corpus
 
 from flair.datasets import SentenceDataset
@@ -58,11 +58,11 @@ for language in LanguageList:
     # 4. initialize tokenizer
     tokenizer: FlairTokenizer = FlairTokenizer(
         letter_to_ix=letter_to_ix,
-        embedding_dim=2048,
+        embedding_dim=256,
         hidden_dim=128,
         num_layers=1,
         use_CSE=False,
-        use_CRF=True,
+        use_CRF=False,
     )
 
     # 5. initialize trainer
@@ -72,9 +72,8 @@ for language in LanguageList:
 
     # 6. train
     trainer.train(
-        "resources/taggers/7_%s"%language,
+        "resources/taggers/3_%s"%language,
         learning_rate=0.1,
         mini_batch_size=32,
         max_epochs=30,
     )
-# %%
