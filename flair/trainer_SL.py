@@ -8,14 +8,14 @@ from tokenizer_model import LabeledString
 
 
 LanguageList = [
-    'HEBREW',
-    'ARABIC',
-    'PORTUGUESE',
-    'ITALIAN',
-    'FRENCH',
-    'SPANISH',
-    'GERMAN',
-    'ENGLISH',
+    # 'HEBREW',
+    # 'ARABIC',
+    # 'PORTUGUESE',
+    # 'ITALIAN',
+    # 'FRENCH',
+    # 'SPANISH',
+    # 'GERMAN',
+    # 'ENGLISH',
     'RUSSIAN',
     'FINNISH',
     'VIETNAMESE',
