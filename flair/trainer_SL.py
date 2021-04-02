@@ -16,11 +16,11 @@ LanguageList = [
     # 'SPANISH',
     # 'GERMAN',
     # 'ENGLISH',
-    'RUSSIAN',
-    'FINNISH',
-    'VIETNAMESE',
-    'KOREAN',
-    'CHINESE',
+    # 'RUSSIAN',
+    # 'FINNISH',
+    # 'VIETNAMESE',
+    # 'KOREAN',
+    # 'CHINESE',
     'JAPANESE'
 ]
 import pickle
