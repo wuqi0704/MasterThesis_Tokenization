@@ -18,10 +18,10 @@ LanguageList = [
     # 'ENGLISH',
     # 'RUSSIAN',
     # 'FINNISH',
-    # 'VIETNAMESE',
+    'VIETNAMESE',
     # 'KOREAN',
     # 'CHINESE',
-    'JAPANESE'
+    # 'JAPANESE'
 ]
 import pickle
 
@@ -75,5 +75,5 @@ for language in LanguageList:
         "resources/taggers/3_%s"%language,
         learning_rate=0.1,
         mini_batch_size=32,
-        max_epochs=30,
+        max_epochs=2,
     )
