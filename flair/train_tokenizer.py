@@ -54,7 +54,7 @@ for sentence in corpus.get_all_sentences():
 print('functions.py : Nr. of distinguish character: ', len(letter_to_ix.keys()))
 #%%
 # 4. initialize tokenizer
-HIDDEN_DIMs = [8,32,64,128,256,512]
+HIDDEN_DIMs = [32,64,128,256,512]
 for HIDDEN_DIM in HIDDEN_DIMs:
     tokenizer: FlairTokenizer = FlairTokenizer(
         letter_to_ix=letter_to_ix,
