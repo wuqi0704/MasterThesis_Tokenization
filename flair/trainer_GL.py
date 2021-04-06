@@ -49,48 +49,54 @@ for language in LanguageList:
 
 for n,g in enumerate(GroupList):
     data_train['group%s'%str(n+1)]=[] 
+    data_test['group%s'%str(n+1)]=[] 
     data_dev['group%s'%str(n+1)]=[]
     for language in g:
         data_train['group%s'%str(n+1)] += data_train[language]
+        data_test['group%s'%str(n+1)] += data_test[language]
         data_dev['group%s'%str(n+1)] += data_dev[language]
         # small sample for testing and debugging
         # data_train['group%s'%str(n+1)] += data_train[language][0:10]
         # data_dev['group%s'%str(n+1)] += data_dev[language][0:10]
 
-#%%
+
+# %%
 # 2. make a Corpus object
 # for language in LanguageList:
-#     corpus: Corpus = Corpus(SentenceDataset(data_train[language]), SentenceDataset(data_test[language]), SentenceDataset(data_dev[language]))
-#     # corpus = corpus.downsample(0.01)
-#     # 3. make the letter dictionary from the corpus
-#     letter_to_ix = {}
-#     letter_to_ix[''] = 0  # need this for padding
+for g in GroupNameList:
+    corpus: Corpus = Corpus(SentenceDataset(data_train[g]), SentenceDataset(data_test[g]), SentenceDataset(data_dev[g]))
+    # corpus = corpus.downsample(0.01)
+    # 3. make the letter dictionary from the corpus
+    letter_to_ix = {}
+    letter_to_ix[''] = 0  # need this for padding
 
-#     for sentence in corpus.get_all_sentences():
-#         for letter in sentence.string:
-#             if letter not in letter_to_ix:
-#                 letter_to_ix[letter] = len(letter_to_ix)
-#     print('functions.py : Nr. of distinguish character: ', len(letter_to_ix.keys()))
+    for sentence in corpus.get_all_sentences():
+        for letter in sentence.string:
+            if letter not in letter_to_ix:
+                letter_to_ix[letter] = len(letter_to_ix)
+    print('functions.py : Nr. of distinguish character: ', len(letter_to_ix.keys()))
 
-#     # 4. initialize tokenizer
-#     tokenizer: FlairTokenizer = FlairTokenizer(
-#         letter_to_ix=letter_to_ix,
-#         embedding_dim=256,
-#         hidden_dim=128,
-#         num_layers=1,
-#         use_CSE=False,
-#         use_CRF=False,
-#     )
+    # 4. initialize tokenizer
+    tokenizer: FlairTokenizer = FlairTokenizer(
+        letter_to_ix=letter_to_ix,
+        embedding_dim=256,
+        hidden_dim=128,
+        num_layers=1,
+        use_CSE=False,
+        use_CRF=False,
+    )
 
-#     # 5. initialize trainer
-#     from flair.trainers import ModelTrainer
+    # 5. initialize trainer
+    from flair.trainers import ModelTrainer
 
-#     trainer: ModelTrainer = ModelTrainer(tokenizer, corpus)
+    trainer: ModelTrainer = ModelTrainer(tokenizer, corpus)
 
-#     # 6. train
-#     trainer.train(
-#         "resources/taggers/3_%s"%language,
-#         learning_rate=0.1,
-#         mini_batch_size=32,
-#         max_epochs=30,
-#     )
+    # 6. train
+    trainer.train(
+        "resources/taggers/4_%s"%g,
+        learning_rate=0.1,
+        mini_batch_size=32,
+        max_epochs=30,
+    )
+
+# %%

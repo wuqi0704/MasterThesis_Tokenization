@@ -248,4 +248,34 @@ print(loss)
 
 
 
+# %% # draw perfermance graph 
+import pandas as pd
+s = pd.DataFrame()
+for HIDDEN_DIM in ['32','64','128','256','512']:
+    a = (pd.read_csv("/Users/qier/MasterThesis_Tokenization/results/1_h%s.csv"%HIDDEN_DIM))
+    a['hidden_dim'] = HIDDEN_DIM
+    s = pd.concat([s,a],axis=0)
+# s.groupby(['Unnamed: 0']).mean()
+s
+# %%
+s = s.rename(columns={'Unnamed: 0':'language'})
+import matplotlib.pyplot as plt
+g1 = s[s['F1-score']>0.95]
+g2 = s[s['F1-score']<=0.95]
+f = plt.figure(figsize = [12,5])
+ax = f.add_subplot(121)
+for language in g1.language.unique():
+    c = g1[g1['language']==language]
+    ax.plot(c.hidden_dim,c['F1-score'],label = language)
+plt.legend(loc = 'lower right',prop={'size': 8})
+plt.title('group1: F1-score > 0.95')
+ax.set_xlabel('hidden dimension')
+ax2 = f.add_subplot(122)
+for language in g2.language.unique():
+    c = g2[g2['language']==language]
+    ax2.plot(c.hidden_dim,c['F1-score'],label=language)
+plt.legend()
+plt.title('group2: F1-score <= 0.95')
+ax2.set_xlabel('hidden dimension')
+plt.savefig('hidden.png')
 # %%
