@@ -44,28 +44,47 @@ for language in LanguageList:
 import torch 
 from tqdm import tqdm
 import pandas as pd
-# state = torch.load('./resources/taggers/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
-# model_names = ['1_h8','1_h32','1_h64','1_h128','1_h256']
+# # state = torch.load('./resources/taggers/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
+# # model_names = ['1_h8','1_h32','1_h64','1_h128','1_h256']
+
+
+# output = {}
+# for language in tqdm(LanguageList):
+
+#     state = torch.load('/Users/qier/Downloads/ML_Tagger/3_SL/3_%s/best-model.pt'%language,map_location=torch.device('cpu'))
+#     tokenizer = FlairTokenizer() 
+#     model = tokenizer._init_model_with_state_dict(state)
+#     result, eval_loss = model.evaluate(data_test[language],mini_batch_size=1)
+#     obj = result.detailed_results
+#     output[language] = [float(item.split(':')[1]) for item in obj.split('\n-')[1:]]
+
+# out_dataframe = pd.DataFrame.from_dict(output, orient='index')
+# out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
+# # out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/3_SL.csv')
+
+# # state = torch.load('./resources/taggers/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
+# # model_names = ['1_h8','1_h32','1_h64','1_h128','1_h256']
+
+g1 = ['HEBREW','ARABIC']
+g2 = ['PORTUGUESE','ITALIAN','FRENCH','SPANISH','GERMAN','ENGLISH','FINNISH']
+g3 = ['RUSSIAN', 'KOREAN']
+g4 = ['CHINESE','JAPANESE']
+g5 = ['VIETNAMESE']
+GroupList = [g1,g2,g3,g4,g5]
 
 
 output = {}
-for language in tqdm(LanguageList):
-
-    state = torch.load('/Users/qier/Downloads/ML_Tagger/3_SL/3_%s/best-model.pt'%language,map_location=torch.device('cpu'))
+for i,g in enumerate(GroupList):
+    state = torch.load('/Users/qier/Downloads/ML_Tagger/4_group%s/best-model.pt'%str(i+1),map_location=torch.device('cpu'))
     tokenizer = FlairTokenizer() 
     model = tokenizer._init_model_with_state_dict(state)
-    result, eval_loss = model.evaluate(data_test[language],mini_batch_size=1)
-    obj = result.detailed_results
-    output[language] = [float(item.split(':')[1]) for item in obj.split('\n-')[1:]]
+    for language in tqdm(GroupList[i]):
+        result, eval_loss = model.evaluate(data_test[language],mini_batch_size=1)
+        obj = result.detailed_results
+        output[language] = [float(item.split(':')[1]) for item in obj.split('\n-')[1:]]
 
 out_dataframe = pd.DataFrame.from_dict(output, orient='index')
 out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
-# out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/3_SL.csv')
+out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/4_GL.csv')
 
-
-
-# %%
-out_dataframe
-# %%
-output
 # %%

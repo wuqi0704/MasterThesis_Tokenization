@@ -279,3 +279,5 @@ plt.title('group2: F1-score <= 0.95')
 ax2.set_xlabel('hidden dimension')
 plt.savefig('hidden.png')
 # %%
+a = pd.read_csv("/Users/qier/MasterThesis_Tokenization/results/3_SL.csv")
+a = pd.read_csv("/Users/qier/MasterThesis_Tokenization/results/4_GL.csv")
