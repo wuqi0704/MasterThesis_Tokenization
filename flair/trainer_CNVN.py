@@ -1,4 +1,6 @@
 #%% BiLSTM model SL
+import flair
+flair.device = 'cuda:1'
 from flair.data import Corpus
 
 from flair.datasets import SentenceDataset

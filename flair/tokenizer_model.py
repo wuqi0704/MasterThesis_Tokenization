@@ -11,6 +11,7 @@ from flair.datasets import DataLoader
 from flair.datasets import SentenceDataset
 
 import flair
+flair.device = 'cuda:1'
 from flair.data import DataPoint
 from flair.training_utils import Result
 
