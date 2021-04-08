@@ -45,7 +45,7 @@ tokenizer: FlairTokenizer = FlairTokenizer(
     hidden_dim=HIDDEN_DIM,
     num_layers=1,
     use_CSE=True,
-    use_CRF=False,
+    use_CRF=True,
 )
 
 # 5. initialize trainer
