@@ -75,5 +75,5 @@ for language in LanguageList:
         "resources/taggers/5_CRFCSE_4096%s"%language,
         learning_rate=0.1,
         mini_batch_size=32,
-        max_epochs=10,
+        max_epochs=2,
     )
