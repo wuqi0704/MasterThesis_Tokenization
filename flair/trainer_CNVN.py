@@ -74,6 +74,6 @@ for language in LanguageList:
     trainer.train(
         "resources/taggers/5_CRFCSE_4096%s"%language,
         learning_rate=0.1,
-        mini_batch_size=32,
-        max_epochs=2,
+        mini_batch_size=16,# reduce batch_size and epoch due to GPU Runtime error 
+        max_epochs=15,
     )
