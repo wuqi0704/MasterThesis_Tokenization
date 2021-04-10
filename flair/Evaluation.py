@@ -40,10 +40,11 @@ for language in LanguageList:
     for item in data_test[language]:
         if len(item.string)==1:
             data_test[language].remove(item)
-#%%
+
 import torch 
 from tqdm import tqdm
 import pandas as pd
+#%%
 # # state = torch.load('./resources/taggers/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
 # # model_names = ['1_h8','1_h32','1_h64','1_h128','1_h256']
 
@@ -87,9 +88,6 @@ import pandas as pd
 # out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/4_GL.csv')
 
 # %%
-import torch 
-from tqdm import tqdm
-import pandas as pd
 # # state = torch.load('./resources/taggers/%s/best-model.pt'%model_name,map_location=torch.device('cpu'))
 # # model_names = ['1_h8','1_h32','1_h64','1_h128','1_h256']
 
@@ -107,7 +105,6 @@ out_dataframe = pd.DataFrame.from_dict(output, orient='index')
 out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
 # out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/3_SL.csv')
 
-
 # %%
-torch.load('/Users/qier/Downloads/ML_Tagger/5_CRFCSE_4096CHINESE/best-model.pt',map_location=torch.device('cpu'))
+out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/5_CRFCSE_4096.csv')
 # %%

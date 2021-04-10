@@ -63,7 +63,7 @@ for language in LanguageList:
         embedding_dim=4096,
         hidden_dim=128,
         num_layers=1,
-        use_CSE=True,
+        use_CSE=False,
         use_CRF=True,
     )
 
@@ -74,7 +74,7 @@ for language in LanguageList:
 
     # 6. train
     trainer.train(
-        "resources/taggers/5_CRFCSE_4096%s"%language,
+        "resources/taggers/5_CRF_4096%s"%language,
         learning_rate=0.1,
         mini_batch_size=32,
         max_epochs=30,
