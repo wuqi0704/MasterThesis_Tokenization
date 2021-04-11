@@ -17,7 +17,7 @@ LanguageList = [
     # 'FRENCH',
     # 'SPANISH',
     # 'GERMAN',
-    'ENGLISH',
+    # 'ENGLISH',
     # 'RUSSIAN',
     # 'FINNISH',
     'VIETNAMESE',
