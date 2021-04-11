@@ -63,8 +63,8 @@ for language in LanguageList:
         embedding_dim=4096,
         hidden_dim=128,
         num_layers=1,
-        use_CSE=False,
-        use_CRF=True,
+        use_CSE=True,
+        use_CRF=False,
     )
 
     # 5. initialize trainer
