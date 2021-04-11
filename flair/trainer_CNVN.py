@@ -74,7 +74,7 @@ for language in LanguageList:
 
     # 6. train
     trainer.train(
-        "resources/taggers/5_CRF_4096%s"%language,
+        "resources/taggers/5_CSE%s"%language,
         learning_rate=0.1,
         mini_batch_size=32,
         max_epochs=30,
