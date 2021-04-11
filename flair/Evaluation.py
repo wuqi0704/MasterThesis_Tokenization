@@ -94,7 +94,7 @@ import pandas as pd
 output = {}
 for language in tqdm(['CHINESE','VIETNAMESE']):
 
-    state = torch.load('/Users/qier/Downloads/ML_Tagger/5_CRF_%s/best-model.pt'%language,map_location=torch.device('cpu'))
+    state = torch.load('/Users/qier/Downloads/ML_Tagger/5_CSE_%s/best-model.pt'%language,map_location=torch.device('cpu'))
     tokenizer = FlairTokenizer() 
     model = tokenizer._init_model_with_state_dict(state)
     result, eval_loss = model.evaluate(data_test[language],mini_batch_size=1)
@@ -106,7 +106,7 @@ out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
 # out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/3_SL.csv')
 
 # %%
-out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/5_CRF_4096.csv')
+out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/5_CSE_4096.csv')
 # %%
 out_dataframe
 # %%
