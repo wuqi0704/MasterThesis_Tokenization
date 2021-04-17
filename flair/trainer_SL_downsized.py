@@ -1,6 +1,4 @@
 #%% BiLSTM model SL
-import flair
-flair.device = 'cuda:1'
 from flair.data import Corpus
 
 from flair.datasets import SentenceDataset
@@ -10,20 +8,20 @@ from tokenizer_model import LabeledString
 
 
 LanguageList = [
-    # 'HEBREW',
-    # 'ARABIC',
-    # 'PORTUGUESE',
-    # 'ITALIAN',
-    # 'FRENCH',
-    # 'SPANISH',
-    # 'GERMAN',
-    # 'ENGLISH',
-    # 'RUSSIAN',
-    # 'FINNISH',
+    'HEBREW',
+    'ARABIC',
+    'PORTUGUESE',
+    'ITALIAN',
+    'FRENCH',
+    'SPANISH',
+    'GERMAN',
+    'ENGLISH',
+    'RUSSIAN',
+    'FINNISH',
     'VIETNAMESE',
-    # 'KOREAN',
+    'KOREAN',
     'CHINESE',
-    # 'JAPANESE'
+    'JAPANESE'
 ]
 import pickle
 
@@ -40,7 +38,17 @@ for language in LanguageList:
     data_train[language] = [LabeledString(pair[0]).set_label('tokenization', pair[1]) for pair in train]
     data_test[language] = [LabeledString(pair[0]).set_label('tokenization', pair[1]) for pair in test]
     data_dev[language] = [LabeledString(pair[0]).set_label('tokenization', pair[1]) for pair in dev]
-
+#%% training set 1400, dev and test 400 each 
+# for language in LanguageList:
+#     print(language,len(data_test[language])/len(data_train[language]))
+#     print(language,len(data_dev[language])/len(data_train[language]))
+#     print('\n')
+import random
+random.seed(123)
+for language in LanguageList:
+    data_train[language]=random.choices(data_train[language],k=1400)
+    data_test[language]=random.choices(data_test[language],k=400)
+    data_dev[language]=random.choices(data_dev[language],k=400)
 
 #%%
 # 2. make a Corpus object
@@ -60,7 +68,7 @@ for language in LanguageList:
     # 4. initialize tokenizer
     tokenizer: FlairTokenizer = FlairTokenizer(
         letter_to_ix=letter_to_ix,
-        embedding_dim=4096,
+        embedding_dim=256,
         hidden_dim=128,
         num_layers=1,
         use_CSE=False,
@@ -74,8 +82,9 @@ for language in LanguageList:
 
     # 6. train
     trainer.train(
-        "resources/taggers/5_4096_%s"%language,
+        "resources/taggers/6_%s"%language,
         learning_rate=0.1,
         mini_batch_size=32,
         max_epochs=30,
     )
+

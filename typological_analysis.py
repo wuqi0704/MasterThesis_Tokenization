@@ -123,6 +123,8 @@ def save_obj(obj, name ):
 save_obj(TF,name)
 
 #%% ### Start Analysis here
+import pickle
+import pandas as pd
 def load_obj(name ):
     with open('./TF/' + name + '.pkl', 'rb') as f:
         return pickle.load(f)
@@ -158,7 +160,8 @@ for n,col_name in enumerate(col_list):
     pca = PCA(); X = TF_DF_scaled
     components = pca.fit_transform(X)
     var,per = pca.explained_variance_ , pca.explained_variance_ratio_
-    plt.figure();plt.plot(range(1,len(per)+1),per);plt.title('explained percentage by PC'); plt.savefig('./TF/var_%s.png'%n)
+    plt.figure();plt.plot(range(1,len(per)+1),per);plt.title('explained percentage by PC')
+    # plt.savefig('./TF/var_%s.png'%n)
     explained.append(per)
 
     ### The Optimal number of Cluster 
@@ -169,7 +172,8 @@ for n,col_name in enumerate(col_list):
         labels = kmeans.labels_
         sil.append(silhouette_score(X, labels, metric = 'euclidean'))
     sil = pd.Series(sil,index=range(2,kmax))
-    plt.figure(); plt.plot(sil); plt.title('silhouette score for different number of clusters');plt.savefig('./TF/sil_%s.png'%n)
+    plt.figure(); plt.plot(sil); plt.title('silhouette score for different number of clusters')
+    # plt.savefig('./TF/sil_%s.png'%n)
     optimal_cluster = np.argmax(sil)
 
     # K-means clustering 
@@ -187,13 +191,18 @@ for n,col_name in enumerate(col_list):
     from adjustText import adjust_text
 
     x,y = components.T[0],components.T[1]
-    fig, ax = plt.subplots(figsize=(10,10))
+    size = (10*(var[0]/var[1]),10)
+    fig, ax = plt.subplots(figsize=size)
     ax.scatter(x,y, c=TF_DF_scaled.cluster_PCA); plt.title('optimal cluster = %s'% optimal_cluster)
     texts = [plt.text(x[i], y[i], TF_DF.index[i], ha='center', va='center') for i in range(len(TF_DF))]
     adjust_text(texts)
+    ax.set(xlabel = f"PC1 : {per[0]*100:.2f} %", ylabel = f"PC2 : {per[1]*100:.2f} %")
 
     plt.savefig('./TF/cluster_%s.png'%n)
 
 # Remark: The results of all 4 combinations are quite similar, and 
 # col2  = ['TC','TT','TW','TM','TI','AL','SD','PNS','PI','PS','PM']
 # is chosen to be reported in the thesis 
+
+
+# %%
