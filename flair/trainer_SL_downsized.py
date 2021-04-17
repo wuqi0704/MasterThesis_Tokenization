@@ -42,16 +42,15 @@ for language in LanguageList:
 import numpy as np
 import random
 N = np.array([1,2,3,4,5])*3000
+random.seed(123)
 for n in N:
-    random.seed(123)
     for language in LanguageList:
         data_train[language]=random.choices(data_train[language],k=n)
-        data_test[language]=random.choices(data_test[language],k=n/10)
-        data_dev[language]=random.choices(data_dev[language],k=n/10)
+        data_test[language]=random.choices(data_test[language],k=np.int(n/10))
+        data_dev[language]=random.choices(data_dev[language],k=np.int(n/10))
 
-#%%
-    # 2. make a Corpus object
-    for language in LanguageList:
+#%% # 2. make a Corpus object
+    # for language in LanguageList:
         corpus: Corpus = Corpus(SentenceDataset(data_train[language]), SentenceDataset(data_test[language]), SentenceDataset(data_dev[language]))
         # corpus = corpus.downsample(0.01)
         # 3. make the letter dictionary from the corpus
