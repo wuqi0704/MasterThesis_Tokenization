@@ -8,20 +8,20 @@ from tokenizer_model import LabeledString
 
 
 LanguageList = [
-    'HEBREW',
-    'ARABIC',
-    'PORTUGUESE',
-    'ITALIAN',
-    'FRENCH',
-    'SPANISH',
-    'GERMAN',
-    'ENGLISH',
+    # 'HEBREW',
+    # 'ARABIC',
+    # 'PORTUGUESE',
+    # 'ITALIAN',
+    # 'FRENCH',
+    # 'SPANISH',
+    # 'GERMAN',
+    # 'ENGLISH',
     'RUSSIAN',
-    'FINNISH',
-    'VIETNAMESE',
+    # 'FINNISH',
+    # 'VIETNAMESE',
     'KOREAN',
-    'CHINESE',
-    'JAPANESE'
+    # 'CHINESE',
+    # 'JAPANESE'
 ]
 import pickle
 
@@ -38,53 +38,52 @@ for language in LanguageList:
     data_train[language] = [LabeledString(pair[0]).set_label('tokenization', pair[1]) for pair in train]
     data_test[language] = [LabeledString(pair[0]).set_label('tokenization', pair[1]) for pair in test]
     data_dev[language] = [LabeledString(pair[0]).set_label('tokenization', pair[1]) for pair in dev]
-#%% training set 1400, dev and test 400 each 
-# for language in LanguageList:
-#     print(language,len(data_test[language])/len(data_train[language]))
-#     print(language,len(data_dev[language])/len(data_train[language]))
-#     print('\n')
+#%%
+import numpy as np
 import random
-random.seed(123)
-for language in LanguageList:
-    data_train[language]=random.choices(data_train[language],k=1400)
-    data_test[language]=random.choices(data_test[language],k=400)
-    data_dev[language]=random.choices(data_dev[language],k=400)
+N = np.array([1,2,3,4,5])*3000
+for n in N:
+    random.seed(123)
+    for language in LanguageList:
+        data_train[language]=random.choices(data_train[language],k=n)
+        data_test[language]=random.choices(data_test[language],k=n/10)
+        data_dev[language]=random.choices(data_dev[language],k=n/10)
 
 #%%
-# 2. make a Corpus object
-for language in LanguageList:
-    corpus: Corpus = Corpus(SentenceDataset(data_train[language]), SentenceDataset(data_test[language]), SentenceDataset(data_dev[language]))
-    # corpus = corpus.downsample(0.01)
-    # 3. make the letter dictionary from the corpus
-    letter_to_ix = {}
-    letter_to_ix[''] = 0  # need this for padding
+    # 2. make a Corpus object
+    for language in LanguageList:
+        corpus: Corpus = Corpus(SentenceDataset(data_train[language]), SentenceDataset(data_test[language]), SentenceDataset(data_dev[language]))
+        # corpus = corpus.downsample(0.01)
+        # 3. make the letter dictionary from the corpus
+        letter_to_ix = {}
+        letter_to_ix[''] = 0  # need this for padding
 
-    for sentence in corpus.get_all_sentences():
-        for letter in sentence.string:
-            if letter not in letter_to_ix:
-                letter_to_ix[letter] = len(letter_to_ix)
-    print('functions.py : Nr. of distinguish character: ', len(letter_to_ix.keys()))
+        for sentence in corpus.get_all_sentences():
+            for letter in sentence.string:
+                if letter not in letter_to_ix:
+                    letter_to_ix[letter] = len(letter_to_ix)
+        print('functions.py : Nr. of distinguish character: ', len(letter_to_ix.keys()))
 
-    # 4. initialize tokenizer
-    tokenizer: FlairTokenizer = FlairTokenizer(
-        letter_to_ix=letter_to_ix,
-        embedding_dim=256,
-        hidden_dim=128,
-        num_layers=1,
-        use_CSE=False,
-        use_CRF=False,
-    )
+        # 4. initialize tokenizer
+        tokenizer: FlairTokenizer = FlairTokenizer(
+            letter_to_ix=letter_to_ix,
+            embedding_dim=256,
+            hidden_dim=128,
+            num_layers=1,
+            use_CSE=False,
+            use_CRF=False,
+        )
 
-    # 5. initialize trainer
-    from flair.trainers import ModelTrainer
+        # 5. initialize trainer
+        from flair.trainers import ModelTrainer
 
-    trainer: ModelTrainer = ModelTrainer(tokenizer, corpus)
+        trainer: ModelTrainer = ModelTrainer(tokenizer, corpus)
 
-    # 6. train
-    trainer.train(
-        "resources/taggers/6_%s"%language,
-        learning_rate=0.1,
-        mini_batch_size=32,
-        max_epochs=30,
-    )
+        # 6. train
+        trainer.train(
+            "resources/taggers/6_SL_RK/6_%s_%s"%(language,n),
+            learning_rate=0.1,
+            mini_batch_size=32,
+            max_epochs=30,
+        )
 
