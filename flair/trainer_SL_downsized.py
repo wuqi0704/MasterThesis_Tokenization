@@ -81,7 +81,7 @@ for n in N:
 
         # 6. train
         trainer.train(
-            "resources/taggers/6_SL_RK/6_%s_%s"%(language,n),
+            "resources/taggers/6_%s_%s"%(language,n),
             learning_rate=0.1,
             mini_batch_size=32,
             max_epochs=30,
