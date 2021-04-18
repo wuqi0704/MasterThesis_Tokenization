@@ -11,15 +11,15 @@ LanguageList = [
     # 'HEBREW',
     # 'ARABIC',
     # 'PORTUGUESE',
-    # 'ITALIAN',
-    # 'FRENCH',
-    # 'SPANISH',
-    # 'GERMAN',
-    # 'ENGLISH',
-    'RUSSIAN',
-    # 'FINNISH',
+    'ITALIAN',
+    'FRENCH',
+    'SPANISH',
+    'GERMAN',
+    'ENGLISH',
+    # 'RUSSIAN',
+    'FINNISH',
     # 'VIETNAMESE',
-    'KOREAN',
+    # 'KOREAN',
     # 'CHINESE',
     # 'JAPANESE'
 ]
@@ -41,7 +41,7 @@ for language in LanguageList:
 #%%
 import numpy as np
 import random
-N = np.array([1,2,3,4,5])*3000
+N = np.array([1,2,3,4,5,6,7,8])*1000
 random.seed(123)
 for n in N:
     for language in LanguageList:
