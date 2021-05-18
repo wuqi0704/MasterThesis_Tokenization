@@ -169,3 +169,50 @@ out_dataframe = pd.DataFrame.from_dict(output, orient='index')
 out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
 out_dataframe.to_csv('RK_SL_downsized.csv')
 # %%
+LanguageList = [
+    'ITALIAN',
+    'FRENCH',
+    'SPANISH',
+    'GERMAN',
+    'ENGLISH',
+    'FINNISH',
+]
+import pickle
+
+# 1. load your data and convert to list of LabeledString
+data_train, data_test, data_dev = {}, {}, {}
+for language in LanguageList:
+    with open('resources/%s_Train.pickle' % language, 'rb') as f1:
+        train = pickle.load(f1)
+    with open('resources/%s_Test.pickle' % language, 'rb') as f2:
+        test = pickle.load(f2)
+    with open('resources/%s_Dev.pickle' % language, 'rb') as f3:
+        dev = pickle.load(f3)
+
+    data_train[language] = [LabeledString(pair[0]).set_label('tokenization', pair[1]) for pair in train]
+    data_test[language] = [LabeledString(pair[0]).set_label('tokenization', pair[1]) for pair in test]
+    data_dev[language] = [LabeledString(pair[0]).set_label('tokenization', pair[1]) for pair in dev]
+output = {}
+import numpy as np
+import random
+N = np.array([1,2,3,4,5,6,7])*1000
+random.seed(123)
+for n in N:
+    for language in LanguageList:
+        data_train[language]=random.choices(data_train[language],k=n)
+        data_test[language]=random.choices(data_test[language],k=np.int(n/10))
+        data_dev[language]=random.choices(data_dev[language],k=np.int(n/10))
+
+        state = torch.load('/Users/qier/Downloads/ML_Tagger/6_SL/6_%s_%s/best-model.pt'%(language,n),map_location=torch.device('cpu'))
+        tokenizer = FlairTokenizer() 
+        model = tokenizer._init_model_with_state_dict(state)
+        result, eval_loss = model.evaluate(data_test[language],mini_batch_size=1)
+        obj = result.detailed_results
+        output[(language,n)] = [float(item.split(':')[1]) for item in obj.split('\n-')[1:]]
+
+out_dataframe = pd.DataFrame.from_dict(output, orient='index')
+out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
+out_dataframe.to_csv('SL_6L_downsized.csv')
+# %%
+
+# %%
