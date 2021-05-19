@@ -63,7 +63,7 @@ for language in LanguageList:
         hidden_dim=128,
         num_layers=1,
         use_CSE=True,
-        use_CRF=False,
+        use_CRF=True,
     )
 
     # 5. initialize trainer
@@ -73,7 +73,7 @@ for language in LanguageList:
 
     # 6. train
     trainer.train(
-        "resources/taggers/5_CSE_%s"%language,
+        "resources/taggers/5_CRFCSE_%s"%language,
         learning_rate=0.1,
         mini_batch_size=32,
         max_epochs=30,
