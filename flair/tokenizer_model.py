@@ -406,11 +406,11 @@ class FlairTokenizer(flair.nn.Model):
             )
 
             # line for log file
-            log_header = "Recall"
-            log_line = f"\t{np.mean(R_score)}"
+            log_header = "F1_score"
+            log_line = f"\t{np.mean(F1_score)}"
 
             result = Result(
-                main_score=np.mean(R_score),
+                main_score=np.mean(F1_score),
                 log_line=log_line,
                 log_header=log_header,
                 detailed_results=detailed_result,

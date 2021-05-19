@@ -1,8 +1,7 @@
 #%% BiLSTM model SL
-import flair
-flair.device = 'cuda:1'
+# import flair
+# flair.device = 'cuda:1'
 from flair.data import Corpus
-
 from flair.datasets import SentenceDataset
 from flair.embeddings import token
 from tokenizer_model import FlairTokenizer
@@ -60,7 +59,7 @@ for language in LanguageList:
     # 4. initialize tokenizer
     tokenizer: FlairTokenizer = FlairTokenizer(
         letter_to_ix=letter_to_ix,
-        embedding_dim=4096,
+        embedding_dim=256,
         hidden_dim=128,
         num_layers=1,
         use_CSE=False,
@@ -74,7 +73,7 @@ for language in LanguageList:
 
     # 6. train
     trainer.train(
-        "resources/taggers/5_4096_%s"%language,
+        "resources/taggers/5_256_%s"%language,
         learning_rate=0.1,
         mini_batch_size=32,
         max_epochs=30,
