@@ -72,7 +72,7 @@ for Embed_Dim in Embed_Dims:
 
     # 6. train
     trainer.train(
-        "resources/taggers/1_h%s"%Embed_Dim,
+        "resources/taggers/2_e%s"%Embed_Dim,
         learning_rate=0.1,
         mini_batch_size=32,
         max_epochs=30,
