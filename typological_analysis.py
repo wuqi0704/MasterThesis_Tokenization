@@ -134,13 +134,15 @@ col = ['TC','TT','TW','TM','TI','AL','SD','PNS','PI','PS','PM','SF','NS','NI','N
 col1  = ['TC','TT','TW','TM','TI','AL','SD','PNS','PI','PS','PM','SF']
 col2  = ['TC','TT','TW','TM','TI','AL','SD','PNS','PI','PS','PM']
 col3  = ['TC','TT','TM','TM','TI','AL','SD','PNS','PI',     'PM']
+col4  = ['TC','TT','TI','AL','SD','PNS','PI','PS']
 
 name = 'TF_LanguageList'
 TF = load_obj(name)
 TF_DF_full = pd.DataFrame.from_dict(TF, orient='index',columns=col)
 
-col_list = [col,col1,col2,col3]
+# col_list = [col,col1,col2,col3]
 
+col_list = [col,col1,col2,col3,col4]
 # Run TF Analysis for 4 different factor cominations
 
 # preprocessing : columns selection and normalization
@@ -161,7 +163,7 @@ for n,col_name in enumerate(col_list):
     components = pca.fit_transform(X)
     var,per = pca.explained_variance_ , pca.explained_variance_ratio_
     plt.figure();plt.plot(range(1,len(per)+1),per);plt.title('explained percentage by PC')
-    # plt.savefig('./TF/var_%s.png'%n)
+    plt.savefig('./TF/var_%s.png'%n)
     explained.append(per)
 
     ### The Optimal number of Cluster 
@@ -173,9 +175,9 @@ for n,col_name in enumerate(col_list):
         sil.append(silhouette_score(X, labels, metric = 'euclidean'))
     sil = pd.Series(sil,index=range(2,kmax))
     plt.figure(); plt.plot(sil); plt.title('silhouette score for different number of clusters')
-    # plt.savefig('./TF/sil_%s.png'%n)
-    optimal_cluster = np.argmax(sil)
-
+    plt.savefig('./TF/sil_%s.png'%n)
+    optimal_cluster = np.argmax(sil)+2
+    print(optimal_cluster)
     # K-means clustering 
     from sklearn.cluster import KMeans
     pca = PCA(n_components=5)
@@ -204,5 +206,14 @@ for n,col_name in enumerate(col_list):
 # col2  = ['TC','TT','TW','TM','TI','AL','SD','PNS','PI','PS','PM']
 # is chosen to be reported in the thesis 
 
-
+# %%
+for i in range(2,5):
+    print(i)
+# %%
+sil = pd.Series(sil,index=range(2,kmax))
+sil
+# %%
+sil.argmax()
+# %%
+sil
 # %%

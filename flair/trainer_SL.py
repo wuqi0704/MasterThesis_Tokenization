@@ -8,20 +8,20 @@ from tokenizer_model import LabeledString
 
 
 LanguageList = [
-    # 'HEBREW',
-    # 'ARABIC',
-    # 'PORTUGUESE',
-    # 'ITALIAN',
-    # 'FRENCH',
-    # 'SPANISH',
-    # 'GERMAN',
-    # 'ENGLISH',
-    # 'RUSSIAN',
-    # 'FINNISH',
+    'HEBREW',
+    'ARABIC',
+    'PORTUGUESE',
+    'ITALIAN',
+    'FRENCH',
+    'SPANISH',
+    'GERMAN',
+    'ENGLISH',
+    'RUSSIAN',
+    'FINNISH',
     'VIETNAMESE',
-    # 'KOREAN',
-    # 'CHINESE',
-    # 'JAPANESE'
+    'KOREAN',
+    'CHINESE',
+    'JAPANESE'
 ]
 import pickle
 
@@ -58,7 +58,7 @@ for language in LanguageList:
     # 4. initialize tokenizer
     tokenizer: FlairTokenizer = FlairTokenizer(
         letter_to_ix=letter_to_ix,
-        embedding_dim=256,
+        embedding_dim=128,
         hidden_dim=128,
         num_layers=1,
         use_CSE=False,
@@ -72,8 +72,9 @@ for language in LanguageList:
 
     # 6. train
     trainer.train(
-        "resources/taggers/3_%s"%language,
+        f"resources/taggers/6_SL{language}",
         learning_rate=0.1,
         mini_batch_size=32,
-        max_epochs=2,
+        max_epochs=30,
     )
+

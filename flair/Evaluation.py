@@ -112,7 +112,7 @@ import pandas as pd
 # out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/5_RF_256.csv')
 
 # %%
-for hd in tqdm([32,128,4096]):
+for hd in tqdm([64]):
     output = {}
     state = torch.load(f'/Users/qier/Downloads/Tagger/2_e{hd}/best-model.pt',map_location=torch.device('cpu'))
     tokenizer = FlairTokenizer() 
