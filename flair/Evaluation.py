@@ -36,11 +36,11 @@ for language in LanguageList:
     data_dev[language] = [LabeledString(pair[0]).set_label('tokenization', pair[1]) for pair in dev]
 #additionally delete the sentences with length 1, which also make no sense in a tokenization task.
 # and cause bug for dimension problem.
-import random
-random.seed(123)
-for language in LanguageList:
-    data_test[language]=random.choices(data_test[language],k=400)
-    data_dev[language]=random.choices(data_dev[language],k=400)
+# import random
+# random.seed(123)
+# for language in LanguageList:
+#     data_test[language]=random.choices(data_test[language],k=400)
+#     data_dev[language]=random.choices(data_dev[language],k=400)
 
 for language in LanguageList:
     for item in data_test[language]:
@@ -112,20 +112,19 @@ import pandas as pd
 # out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/5_RF_256.csv')
 
 # %%
-output = {}
-
-for language in tqdm(LanguageList):
-
-    state = torch.load('/Users/qier/Downloads/ML_Tagger/6_SL/6_%s/best-model.pt'%language,map_location=torch.device('cpu'))
+for hd in tqdm([32,128,4096]):
+    output = {}
+    state = torch.load(f'/Users/qier/Downloads/Tagger/2_e{hd}/best-model.pt',map_location=torch.device('cpu'))
     tokenizer = FlairTokenizer() 
     model = tokenizer._init_model_with_state_dict(state)
-    result, eval_loss = model.evaluate(data_test[language],mini_batch_size=1)
-    obj = result.detailed_results
-    output[language] = [float(item.split(':')[1]) for item in obj.split('\n-')[1:]]
+    for language in tqdm(LanguageList):
+        result, eval_loss = model.evaluate(data_test[language],mini_batch_size=32)
+        obj = result.detailed_results
+        output[language] = [float(item.split(':')[1]) for item in obj.split('\n-')[1:]]
 
-out_dataframe = pd.DataFrame.from_dict(output, orient='index')
-out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
-# out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/6_SL.csv')
+    out_dataframe = pd.DataFrame.from_dict(output, orient='index')
+    out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
+    out_dataframe.to_csv(f'/Users/qier/MasterThesis_Tokenization/results/2_e{hd}.csv')
 
 # %%
 output = {}

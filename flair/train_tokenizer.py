@@ -52,6 +52,7 @@ for sentence in corpus.get_all_sentences():
         if letter not in letter_to_ix:
             letter_to_ix[letter] = len(letter_to_ix)
 print('functions.py : Nr. of distinguish character: ', len(letter_to_ix.keys()))
+
 #%%
 # 4. initialize tokenizer
 Embed_Dims = [32,128,4096]
