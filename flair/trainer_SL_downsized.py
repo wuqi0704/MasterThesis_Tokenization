@@ -15,9 +15,9 @@ LanguageList = [
     'FRENCH',
     'SPANISH',
     'GERMAN',
-    'ENGLISH',
+    # 'ENGLISH',
     # 'RUSSIAN',
-    'FINNISH',
+    # 'FINNISH',
     # 'VIETNAMESE',
     # 'KOREAN',
     # 'CHINESE',
@@ -41,7 +41,7 @@ for language in LanguageList:
 #%%
 import numpy as np
 import random
-N = np.array([1,2,3,4,5,6,7,8])*1000
+N = np.array([1,3,5,7,9,11])*1000
 random.seed(123)
 for n in N:
     for language in LanguageList:
@@ -66,7 +66,7 @@ for n in N:
         # 4. initialize tokenizer
         tokenizer: FlairTokenizer = FlairTokenizer(
             letter_to_ix=letter_to_ix,
-            embedding_dim=256,
+            embedding_dim=128,
             hidden_dim=128,
             num_layers=1,
             use_CSE=False,
