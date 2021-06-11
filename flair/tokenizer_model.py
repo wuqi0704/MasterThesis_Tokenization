@@ -72,7 +72,8 @@ class FlairTokenizer(flair.nn.Model):
                  use_CSE=False,
                  tag_to_ix={'B': 0, 'I': 1, 'E': 2, 'S': 3, 'X': 4},
                  learning_rate=0.1,
-                 use_CRF=False
+                 use_CRF=False,
+                 dropout=0. #dropout: float = 0.
                  ):
 
         super(FlairTokenizer, self).__init__()
@@ -85,6 +86,7 @@ class FlairTokenizer(flair.nn.Model):
         self.ix_to_tag = {y: x for x, y in self.tag_to_ix.items()}
         self.learning_rate = learning_rate
         self.use_CRF = use_CRF
+        self.dropout = dropout
 
         if not self.use_CSE:
             self.character_embeddings = nn.Embedding(len(letter_to_ix), embedding_dim)
@@ -111,7 +113,7 @@ class FlairTokenizer(flair.nn.Model):
             self.transitions.data[self.tag_to_ix[self.START_TAG], :] = -10000
             self.transitions.data[:, self.tag_to_ix[self.STOP_TAG]] = -10000
 
-        self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers, batch_first=False, bidirectional=True)
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers, batch_first=False, bidirectional=True,dropout=self.dropout)
         self.hidden2tag = nn.Linear(hidden_dim * 2, len(self.tag_to_ix))
         self.loss_function = nn.NLLLoss()
 

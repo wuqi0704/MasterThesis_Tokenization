@@ -170,11 +170,12 @@ out_dataframe = pd.DataFrame.from_dict(output, orient='index')
 out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
 out_dataframe.to_csv('RK_SL_downsized.csv')
 # %% evaluation for SL downsized 
+import pandas as pd
 LanguageList = [
     # 'HEBREW',
     # 'ARABIC',
     # 'PORTUGUESE',
-    # 'ITALIAN',
+    'ITALIAN',
     'FRENCH',
     'SPANISH',
     'GERMAN',
@@ -205,7 +206,7 @@ output = {}
 import numpy as np
 import random
 N = np.array([1,3,5,7,9,11])*1000
-random.seed(123)
+# random.seed(123)
 for n in N:
     for language in tqdm(LanguageList):
         # data_train[language]=random.choices(data_train[language],k=n)
@@ -218,10 +219,10 @@ for n in N:
         result, eval_loss = model.evaluate(data_test[language],mini_batch_size=1)
         obj = result.detailed_results
         output[(language,n)] = [float(item.split(':')[1]) for item in obj.split('\n-')[1:]]
-
+#%%
 out_dataframe = pd.DataFrame.from_dict(output, orient='index')
 out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
-out_dataframe.to_csv('./results/6L_SL_downsized.csv')
+out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/6L_SL_downsized.csv')
 
 
 # %% Evaluation for SL
@@ -271,4 +272,3 @@ for language in tqdm(LanguageList):
 out_dataframe = pd.DataFrame.from_dict(output, orient='index')
 out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
 out_dataframe.to_csv('3_SL.csv')
-# %%
