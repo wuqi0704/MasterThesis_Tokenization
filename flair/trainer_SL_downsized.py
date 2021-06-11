@@ -66,6 +66,7 @@ for n in N:
         data_train[language]=random.choices(data_train[language],k=n)
         # data_test[language]=random.choices(data_test[language],k=np.int(n/10))
         # data_dev[language]=random.choices(data_dev[language],k=np.int(n/10))
+        corpus: Corpus = Corpus(SentenceDataset(data_train[language]), SentenceDataset(data_test[language]), SentenceDataset(data_dev[language]))
         # 4. initialize tokenizer
         tokenizer: FlairTokenizer = FlairTokenizer(
             letter_to_ix=letter_to_ix,
