@@ -7,8 +7,10 @@ from flair.datasets import SentenceDataset
 from flair.embeddings import token
 from tokenizer_model import FlairTokenizer
 from tokenizer_model import LabeledString
+from tqdm import tqdm 
 import pickle 
-
+import torch
+#%%
 LanguageList = [
     'HEBREW',
     'ARABIC',
@@ -169,20 +171,20 @@ out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
 out_dataframe.to_csv('RK_SL_downsized.csv')
 # %% evaluation for SL downsized 
 LanguageList = [
-    'HEBREW',
-    'ARABIC',
-    'PORTUGUESE',
-    'ITALIAN',
+    # 'HEBREW',
+    # 'ARABIC',
+    # 'PORTUGUESE',
+    # 'ITALIAN',
     'FRENCH',
     'SPANISH',
     'GERMAN',
-    'ENGLISH',
-    'RUSSIAN',
-    'FINNISH',
-    'VIETNAMESE',
-    'KOREAN',
-    'CHINESE',
-    'JAPANESE'
+    # 'ENGLISH',
+    # 'RUSSIAN',
+    # 'FINNISH',
+    # 'VIETNAMESE',
+    # 'KOREAN',
+    # 'CHINESE',
+    # 'JAPANESE'
 ]
 import pickle
 
@@ -202,15 +204,15 @@ for language in LanguageList:
 output = {}
 import numpy as np
 import random
-N = np.array([1,2,3,4,5,6,7])*1000
+N = np.array([1,3,5,7,9,11])*1000
 random.seed(123)
 for n in N:
-    for language in LanguageList:
-        data_train[language]=random.choices(data_train[language],k=n)
-        data_test[language]=random.choices(data_test[language],k=np.int(n/10))
-        data_dev[language]=random.choices(data_dev[language],k=np.int(n/10))
+    for language in tqdm(LanguageList):
+        # data_train[language]=random.choices(data_train[language],k=n)
+        # data_test[language]=random.choices(data_test[language],k=np.int(n/10))
+        # data_dev[language]=random.choices(data_dev[language],k=np.int(n/10))
 
-        state = torch.load(f'/Users/qier/Downloads/ML_Tagger/6_SL/6_{language}_{n}/best-model.pt',map_location=torch.device('cpu'))
+        state = torch.load(f'/Users/qier/Downloads/Tagger/6_SL/6_{language}_{n}/best-model.pt',map_location=torch.device('cpu'))
         tokenizer = FlairTokenizer() 
         model = tokenizer._init_model_with_state_dict(state)
         result, eval_loss = model.evaluate(data_test[language],mini_batch_size=1)
@@ -219,7 +221,9 @@ for n in N:
 
 out_dataframe = pd.DataFrame.from_dict(output, orient='index')
 out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
-out_dataframe.to_csv('SL_6L_downsized.csv')
+out_dataframe.to_csv('./results/6L_SL_downsized.csv')
+
+
 # %% Evaluation for SL
 LanguageList = [
     'HEBREW',

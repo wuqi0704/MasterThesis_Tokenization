@@ -45,11 +45,11 @@ N = np.array([1,3,5,7,9,11])*1000
 random.seed(123)
 for n in N:
     for language in LanguageList:
-        data_train[language]=random.choices(data_train[language],k=n)
-        data_test[language]=random.choices(data_test[language],k=np.int(n/10))
-        data_dev[language]=random.choices(data_dev[language],k=np.int(n/10))
-
-#%% # 2. make a Corpus object
+        # data_train[language]=random.choices(data_train[language],k=n)
+        # data_test[language]=random.choices(data_test[language],k=np.int(n/10))
+        # data_dev[language]=random.choices(data_dev[language],k=np.int(n/10))
+    
+    #%% # 2. make a Corpus object
     # for language in LanguageList:
         corpus: Corpus = Corpus(SentenceDataset(data_train[language]), SentenceDataset(data_test[language]), SentenceDataset(data_dev[language]))
         # corpus = corpus.downsample(0.01)
@@ -63,6 +63,9 @@ for n in N:
                     letter_to_ix[letter] = len(letter_to_ix)
         print('functions.py : Nr. of distinguish character: ', len(letter_to_ix.keys()))
 
+        data_train[language]=random.choices(data_train[language],k=n)
+        # data_test[language]=random.choices(data_test[language],k=np.int(n/10))
+        # data_dev[language]=random.choices(data_dev[language],k=np.int(n/10))
         # 4. initialize tokenizer
         tokenizer: FlairTokenizer = FlairTokenizer(
             letter_to_ix=letter_to_ix,
