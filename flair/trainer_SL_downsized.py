@@ -5,6 +5,7 @@ from flair.datasets import SentenceDataset
 from flair.embeddings import token
 from tokenizer_model import FlairTokenizer
 from tokenizer_model import LabeledString
+from torch.nn.functional import dropout
 
 
 LanguageList = [
@@ -75,6 +76,7 @@ for n in N:
             num_layers=1,
             use_CSE=False,
             use_CRF=False,
+            dropout=0.5,
         )
 
         # 5. initialize trainer
