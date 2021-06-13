@@ -205,15 +205,3 @@ for n,col_name in enumerate(col_list):
 # Remark: The results of all 4 combinations are quite similar, and 
 # col2  = ['TC','TT','TW','TM','TI','AL','SD','PNS','PI','PS','PM']
 # is chosen to be reported in the thesis 
-
-# %%
-for i in range(2,5):
-    print(i)
-# %%
-sil = pd.Series(sil,index=range(2,kmax))
-sil
-# %%
-sil.argmax()
-# %%
-sil
-# %%
