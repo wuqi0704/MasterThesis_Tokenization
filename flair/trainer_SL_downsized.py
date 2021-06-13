@@ -146,7 +146,7 @@ for n in N:
             num_layers=1,
             use_CSE=False,
             use_CRF=False,
-            # dropout=0.5,
+            dropout=0.5,
         )
 
         # 5. initialize trainer
