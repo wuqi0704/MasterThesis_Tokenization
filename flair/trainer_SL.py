@@ -63,6 +63,7 @@ for language in LanguageList:
         num_layers=1,
         use_CSE=False,
         use_CRF=False,
+        dropout=0.5,
     )
 
     # 5. initialize trainer
@@ -72,7 +73,7 @@ for language in LanguageList:
 
     # 6. train
     trainer.train(
-        f"resources/taggers/6_SL{language}",
+        f"resources/taggers/6_SL_dropout0.5_{language}",
         learning_rate=0.1,
         mini_batch_size=32,
         max_epochs=30,

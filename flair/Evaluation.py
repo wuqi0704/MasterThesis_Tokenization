@@ -214,7 +214,7 @@ for n in N:
         # data_test[language]=random.choices(data_test[language],k=np.int(n/10))
         # data_dev[language]=random.choices(data_dev[language],k=np.int(n/10))
 
-        state = torch.load(f'/Users/qier/Downloads/Tagger/6_SL/6_{language}_{n}/best-model.pt',map_location=torch.device('cpu'))
+        state = torch.load(f'/Users/qier/Downloads/Tagger/6_SL_dropout0.5/6_{language}_{n}/best-model.pt',map_location=torch.device('cpu'))
         tokenizer = FlairTokenizer() 
         model = tokenizer._init_model_with_state_dict(state)
         result, eval_loss = model.evaluate(data_test[language],mini_batch_size=1)
@@ -223,7 +223,7 @@ for n in N:
 
 out_dataframe = pd.DataFrame.from_dict(output, orient='index')
 out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
-out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/6L_SL_downsized2.csv')
+out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/6L_SL_downsized2_drop.csv')
 
 
 # %% Evaluation for SL

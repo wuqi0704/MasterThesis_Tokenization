@@ -205,3 +205,6 @@ for n,col_name in enumerate(col_list):
 # Remark: The results of all 4 combinations are quite similar, and 
 # col2  = ['TC','TT','TW','TM','TI','AL','SD','PNS','PI','PS','PM']
 # is chosen to be reported in the thesis 
+# %%
+print(TF_DF)
+# %%
