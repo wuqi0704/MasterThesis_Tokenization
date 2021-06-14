@@ -40,7 +40,11 @@ from flair.datasets import SentenceDataset
 from flair.embeddings import token
 from tokenizer_model import FlairTokenizer
 from tokenizer_model import LabeledString
+import torch 
 import pickle
+import flair
+import numpy as np
+import torch.optim as optim
 
 language = 'ENGLISH'
 
@@ -75,6 +79,7 @@ data_dev = data_dev [0:3]
 #%%
 # initialize tokenizer
 import torch.nn.functional as F
+
 tokenizer: FlairTokenizer = FlairTokenizer(
     letter_to_ix=letter_to_ix,
     embedding_dim=4096,
@@ -83,12 +88,16 @@ tokenizer: FlairTokenizer = FlairTokenizer(
     use_CSE=True,
     use_CRF=False,
 )
+
+optimizer: torch.optim.Optimizer = optim.SGD(tokenizer.parameters(), lr=0.1)
+
+batch_size = 1 
 from tqdm import tqdm; import time
-MAX_EPOCH = 30
-for epoch in tqdm(range(MAX_EPOCH)): 
-    start_time = time.time()
-    running_loss = 0
-    # for sentence, tags in tqdm(data_train):
+
+start_time = time.time()
+running_loss = 0
+# for sentence, tags in tqdm(data_train):
+for E in range(2): # number of epochs
     for data in tqdm(data_train):
         sentence = [data.string]
         tags = [str(data.get_labels()[0])[:-6]]
@@ -99,40 +108,34 @@ for epoch in tqdm(range(MAX_EPOCH)):
         # Step 2. Get our inputs ready for the network, that is, turn them into
         # Tensors of word indices.
         embeds = tokenizer.prepare_cse(sentence, letter_to_ix)
-        # embeds = embeds.reshape(len(sentence),1,-1)
         print(embeds)
         targets = tokenizer.prepare_batch(tags, tokenizer.tag_to_ix)
-        # targets = targets.reshape(len(sentence),1)
+        batch_input_tags = tokenizer.prepare_batch(tags, tokenizer.tag_to_ix)
+
 
         # Step 3. Run our forward pass.
         # tag_scores = (embeds)
         out, _ = tokenizer.lstm(embeds)
         tag_space = tokenizer.hidden2tag(out.view(embeds.shape[0], embeds.shape[1], -1))
         tag_scores = F.log_softmax(tag_space, dim=2)  # dim = (len(data_points),batch,len(tag))
-        loss = tokenizer.loss_function(tag_scores,targets)
+        length_list = [len(tags[0])]
+
+        packed_tag_space = torch.tensor([], dtype=torch.long, device=flair.device)
+        packed_tag_scores = torch.tensor([], dtype=torch.long, device=flair.device)
+        packed_batch_input_tags = torch.tensor([], dtype=torch.long, device=flair.device)
+
+        for i in np.arange(batch_size):
+            packed_tag_scores = torch.cat((packed_tag_scores, tag_scores[:length_list[i], i, :]))
+            packed_tag_space = torch.cat((packed_tag_space, tag_space[:length_list[i], i, :]))
+            packed_batch_input_tags = torch.cat((packed_batch_input_tags, batch_input_tags[:length_list[i], i]))
+
+        # loss = tokenizer.loss_function(tag_scores,targets)
+        loss = tokenizer.loss_function(packed_tag_scores, packed_batch_input_tags)
         # Step 4. Compute the loss, gradients, and update the parameters by calling optimizer.step()
         running_loss += loss.item()
         loss.backward()
-        tokenizer.optimizer.step()
+        optimizer.step()
 
-# %%
-tag_scores.shape
-
-# %%
-tag_space.shape
-
-# %%
-embeds.shape
-# %%
-len(sentence)
-# %%
-targets.shape
-# %%
-embeds.shape
-# %%
-data.string
-# %%
-tokenizer.prepare_cse(sentence, letter_to_ix).shape
-# %%
-targets.shape
+#%%
+tokenizer.parameters()
 # %%

@@ -175,15 +175,15 @@ LanguageList = [
     # 'HEBREW',
     # 'ARABIC',
     # 'PORTUGUESE',
-    # 'ITALIAN',
-    # 'FRENCH',
-    # 'SPANISH',
-    # 'GERMAN',
+    'ITALIAN',
+    'FRENCH',
+    'SPANISH',
+    'GERMAN',
     # 'ENGLISH',
-    'RUSSIAN',
+    # 'RUSSIAN',
     # 'FINNISH',
     # 'VIETNAMESE',
-    'KOREAN',
+    # 'KOREAN',
     # 'CHINESE',
     # 'JAPANESE'
 ]
@@ -205,8 +205,8 @@ for language in LanguageList:
 output = {}
 import numpy as np
 import random
-# N = np.array([1,3,5,7,9,11])*1000
-N = np.array([1,5,9,13,17,21])*1000
+N = np.array([1,3,5,7,9,11])*1000
+# N = np.array([1,5,9,13,17,21])*1000
 # random.seed(123)
 for n in N:
     for language in tqdm(LanguageList):
@@ -214,7 +214,7 @@ for n in N:
         # data_test[language]=random.choices(data_test[language],k=np.int(n/10))
         # data_dev[language]=random.choices(data_dev[language],k=np.int(n/10))
 
-        state = torch.load(f'/Users/qier/Downloads/Tagger/6_SL_dropout0.5/6_{language}_{n}/best-model.pt',map_location=torch.device('cpu'))
+        state = torch.load(f'/Users/qier/Downloads/Tagger/3_SL_downsized/6_SL_dropout0.5/6_{language}_{n}/best-model.pt',map_location=torch.device('cpu'))
         tokenizer = FlairTokenizer() 
         model = tokenizer._init_model_with_state_dict(state)
         result, eval_loss = model.evaluate(data_test[language],mini_batch_size=1)
@@ -223,7 +223,7 @@ for n in N:
 
 out_dataframe = pd.DataFrame.from_dict(output, orient='index')
 out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
-out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/6L_SL_downsized2_drop.csv')
+out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/6_SL_downsized_drop.csv')
 
 
 # %% Evaluation for SL
@@ -263,7 +263,7 @@ import numpy as np
 
 for language in tqdm(LanguageList):
 
-    state = torch.load(f'/Users/qier/Downloads/Tagger/3_SL/6_SL{language}/best-model.pt',map_location=torch.device('cpu'))
+    state = torch.load(f'/Users/qier/Downloads/Tagger/3_SL/3_SL_dropout/6_SL_dropout0.5_{language}/best-model.pt',map_location=torch.device('cpu'))
     tokenizer = FlairTokenizer() 
     model = tokenizer._init_model_with_state_dict(state)
     result, eval_loss = model.evaluate(data_test[language],mini_batch_size=1)
@@ -272,4 +272,4 @@ for language in tqdm(LanguageList):
 
 out_dataframe = pd.DataFrame.from_dict(output, orient='index')
 out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
-out_dataframe.to_csv('3_SL.csv')
+out_dataframe.to_csv('3_SL_drop.csv')

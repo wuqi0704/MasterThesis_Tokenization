@@ -145,7 +145,7 @@ TF_DF_full = pd.DataFrame.from_dict(TF, orient='index',columns=col)
 col_list = [col,col1,col2,col3,col4]
 # Run TF Analysis for 4 different factor cominations
 
-# preprocessing : columns selection and normalization
+#%% preprocessing : columns selection and normalization
 import numpy as np; import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn import preprocessing
@@ -206,5 +206,5 @@ for n,col_name in enumerate(col_list):
 # col2  = ['TC','TT','TW','TM','TI','AL','SD','PNS','PI','PS','PM']
 # is chosen to be reported in the thesis 
 # %%
-print(TF_DF)
+TF_DF.to_csv('TF_col4.csv')
 # %%

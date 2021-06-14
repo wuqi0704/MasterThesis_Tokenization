@@ -8,18 +8,18 @@ from tokenizer_model import LabeledString
 
 
 LanguageList = [
-    'HEBREW',
-    'ARABIC',
-    'PORTUGUESE',
-    'ITALIAN',
-    'FRENCH',
-    'SPANISH',
-    'GERMAN',
+    # 'HEBREW',
+    # 'ARABIC',
+    # 'PORTUGUESE',
+    # 'ITALIAN',
+    # 'FRENCH',
+    # 'SPANISH',
+    # 'GERMAN',
     'ENGLISH',
-    'RUSSIAN',
-    'FINNISH',
+    # 'RUSSIAN',
+    # 'FINNISH',
     'VIETNAMESE',
-    'KOREAN',
+    # 'KOREAN',
     'CHINESE',
     'JAPANESE'
 ]
@@ -58,12 +58,12 @@ for language in LanguageList:
     # 4. initialize tokenizer
     tokenizer: FlairTokenizer = FlairTokenizer(
         letter_to_ix=letter_to_ix,
-        embedding_dim=128,
+        embedding_dim=4096,
         hidden_dim=128,
         num_layers=1,
         use_CSE=False,
         use_CRF=False,
-        dropout=0.5,
+        # dropout=0.5,
     )
 
     # 5. initialize trainer
@@ -73,7 +73,7 @@ for language in LanguageList:
 
     # 6. train
     trainer.train(
-        f"resources/taggers/6_SL_dropout0.5_{language}",
+        f"resources/taggers/6_SL_4096_{language}",
         learning_rate=0.1,
         mini_batch_size=32,
         max_epochs=30,
