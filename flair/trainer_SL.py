@@ -1,11 +1,9 @@
 #%% BiLSTM model SL
 from flair.data import Corpus
-
 from flair.datasets import SentenceDataset
-from flair.embeddings import token
 from tokenizer_model import FlairTokenizer
 from tokenizer_model import LabeledString
-
+import pickle
 
 LanguageList = [
     # 'HEBREW',
@@ -18,12 +16,11 @@ LanguageList = [
     'ENGLISH',
     # 'RUSSIAN',
     # 'FINNISH',
-    'VIETNAMESE',
+    # 'VIETNAMESE',
     # 'KOREAN',
-    'CHINESE',
+    # 'CHINESE',
     'JAPANESE'
 ]
-import pickle
 
 # 1. load your data and convert to list of LabeledString
 data_train, data_test, data_dev = {}, {}, {}
@@ -61,7 +58,7 @@ for language in LanguageList:
         embedding_dim=4096,
         hidden_dim=128,
         num_layers=1,
-        use_CSE=False,
+        use_CSE=True,
         use_CRF=False,
         # dropout=0.5,
     )
@@ -73,9 +70,8 @@ for language in LanguageList:
 
     # 6. train
     trainer.train(
-        f"resources/taggers/6_SL_4096_{language}",
+        f"resources/taggers/{language}_CSE",
         learning_rate=0.1,
         mini_batch_size=32,
         max_epochs=30,
     )
-
