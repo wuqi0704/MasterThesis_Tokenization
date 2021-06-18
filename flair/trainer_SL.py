@@ -13,12 +13,12 @@ LanguageList = [
     # 'FRENCH',
     # 'SPANISH',
     # 'GERMAN',
-    'ENGLISH',
+    # 'ENGLISH',
     # 'RUSSIAN',
     # 'FINNISH',
-    # 'VIETNAMESE',
+    'VIETNAMESE',
     # 'KOREAN',
-    # 'CHINESE',
+    'CHINESE',
     # 'JAPANESE'
 ]
 
@@ -58,7 +58,7 @@ for language in LanguageList:
         embedding_dim=4096,
         hidden_dim=128,
         num_layers=1,
-        use_CSE=True,
+        use_CSE=False,
         use_CRF=True,
         # dropout=0.5,
     )
@@ -70,8 +70,8 @@ for language in LanguageList:
 
     # 6. train
     trainer.train(
-        f"resources/taggers/5_CRFCSE_{language}",
-        learning_rate=0.1,
+        f"resources/taggers/5_CRF_128_{language}",
+        learning_rate=0.01,
         mini_batch_size=32,
         max_epochs=30,
     )
