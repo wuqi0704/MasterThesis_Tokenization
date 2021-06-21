@@ -10,7 +10,7 @@ from tokenizer_model import LabeledString
 from tqdm import tqdm 
 import pickle 
 import torch
-#%%
+
 LanguageList = [
     'HEBREW',
     'ARABIC',
@@ -114,19 +114,37 @@ import pandas as pd
 # out_dataframe.to_csv('/Users/qier/MasterThesis_Tokenization/results/5_RF_256.csv')
 
 # %%
-for hd in tqdm([64]):
+LanguageList = [
+    'HEBREW',
+    'ARABIC',
+    'PORTUGUESE',
+    'ITALIAN',
+    'FRENCH',
+    'SPANISH',
+    'GERMAN',
+    'ENGLISH',
+    'RUSSIAN',
+    'FINNISH',
+    'VIETNAMESE',
+    'KOREAN',
+    'CHINESE',
+    'JAPANESE'
+]
+
+for hd in tqdm([32,64,128,256,512,1024,2048,4096]):
     output = {}
-    state = torch.load(f'/Users/qier/Downloads/Tagger/2_e{hd}/best-model.pt',map_location=torch.device('cpu'))
+    state = torch.load(f'/Users/qier/Downloads/Tagger/2/2_e{hd}/best-model.pt',map_location=torch.device('cpu'))
     tokenizer = FlairTokenizer() 
     model = tokenizer._init_model_with_state_dict(state)
-    for language in tqdm(LanguageList):
-        result, eval_loss = model.evaluate(data_test[language],mini_batch_size=32)
+    for language in LanguageList:
+        result, eval_loss = model.evaluate(data_test[language],mini_batch_size=1)
         obj = result.detailed_results
         output[language] = [float(item.split(':')[1]) for item in obj.split('\n-')[1:]]
 
     out_dataframe = pd.DataFrame.from_dict(output, orient='index')
     out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
-    out_dataframe.to_csv(f'/Users/qier/MasterThesis_Tokenization/results/2_e{hd}.csv')
+    # out_dataframe.to_csv(f'/Users/qier/MasterThesis_Tokenization/results/2_e{hd}.csv')
+    # out_dataframe.to_csv(f'/Users/qier/Downloads/Tagger/2_e{hd}.csv')
 
 # %%
 output = {}
