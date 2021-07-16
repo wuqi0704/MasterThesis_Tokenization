@@ -137,13 +137,13 @@ for hd in tqdm([32,64,128,256,512,1024,2048,4096]):
     tokenizer = FlairTokenizer() 
     model = tokenizer._init_model_with_state_dict(state)
     for language in LanguageList:
-        result, eval_loss = model.evaluate(data_test[language],mini_batch_size=1)
+        result, eval_loss = model.evaluate(data_test[language],mini_batch_size=32)
         obj = result.detailed_results
         output[language] = [float(item.split(':')[1]) for item in obj.split('\n-')[1:]]
 
     out_dataframe = pd.DataFrame.from_dict(output, orient='index')
     out_dataframe.columns = ['F1-score','Precision-score','Recall-score']
-    # out_dataframe.to_csv(f'/Users/qier/MasterThesis_Tokenization/results/2_e{hd}.csv')
+    out_dataframe.to_csv(f'/Users/qier/MasterThesis_Tokenization/results/2_e{hd}.csv')
     # out_dataframe.to_csv(f'/Users/qier/Downloads/Tagger/2_e{hd}.csv')
 
 # %%

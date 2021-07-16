@@ -11,7 +11,7 @@ from flair.datasets import DataLoader
 from flair.datasets import SentenceDataset
 
 import flair
-# flair.device = 'cuda:1'
+flair.device = 'cuda:1'
 from flair.data import DataPoint
 from flair.training_utils import Result
 
@@ -418,7 +418,7 @@ class FlairTokenizer(flair.nn.Model):
                 detailed_results=detailed_result,
             )
 
-            return result, eval_loss
+            return (result, eval_loss)
 
     def _get_state_dict(self):
         model_state = {

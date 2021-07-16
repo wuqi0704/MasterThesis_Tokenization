@@ -23,14 +23,13 @@ LanguageList = [
     'CHINESE',
     'JAPANESE'
 ]
-g1 = ['HEBREW','ARABIC']
-g2 = ['PORTUGUESE','ITALIAN','FRENCH','SPANISH','GERMAN','ENGLISH','FINNISH']
-g3 = ['RUSSIAN', 'KOREAN']
-g4 = ['CHINESE','JAPANESE']
-g5 = ['VIETNAMESE']
-GroupList = [g1,g2,g3,g4,g5]
-GroupNameList = ['group%s'%str(i) for i in range(1,6)]
+g1 = ['HEBREW','ARABIC','RUSSIAN', 'KOREAN','PORTUGUESE','ITALIAN','FRENCH','SPANISH','GERMAN','ENGLISH','FINNISH']
+g2 = ['CHINESE','JAPANESE']
+g3 = ['VIETNAMESE']
+GroupList = [g1,g2,g3]
+GroupNameList = ['group%s'%str(i) for i in range(1,4)]
 
+#%%
 import pickle
 
 # 1. load your data and convert to list of LabeledString
@@ -79,7 +78,7 @@ for g in GroupNameList:
     # 4. initialize tokenizer
     tokenizer: FlairTokenizer = FlairTokenizer(
         letter_to_ix=letter_to_ix,
-        embedding_dim=256,
+        embedding_dim=128,
         hidden_dim=128,
         num_layers=1,
         use_CSE=False,
